@@ -1,24 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Drawing;
-using System.Linq;
 using System.Windows.Forms;
 
 namespace TravelEase
 {
     public partial class TripSearchForm : Form
     {
-        private string connectionString = @"Data Source=TALHA-SHAFI\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;Encrypt=False;";
+        private string connectionString = @"Data Source=TALHA-SHAFI\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;";
         private string travelerId;
         private DataTable searchResults;
         private bool isCardView = false;
-        private const int MIN_SEARCH_CHARS = 2; // Minimum characters for search suggestions
-
-        // For suggestion dropdowns
-        private List<string> destinationNames = new List<string>();
-        private List<string> operatorNames = new List<string>();
 
         public TripSearchForm(string travelerId)
         {
@@ -69,164 +62,113 @@ namespace TravelEase
             searchResults.Columns.Add("CategoryName", typeof(string));
             searchResults.Columns.Add("Capacity", typeof(int));
             searchResults.Columns.Add("AvailableSpots", typeof(int));
-            searchResults.Columns.Add("OperatorName", typeof(string));
-            searchResults.Columns.Add("Rating", typeof(decimal));
 
             dgvSearchResults.DataSource = searchResults;
             FormatDataGridView();
 
             // Hide card view panel initially
             flpCardView.Visible = false;
-
-            // Cache all destination and operator names for quick search
-            CacheSearchLists();
         }
 
         private void LoadDurationOptions()
         {
+            // Add standard durations to the dropdown
             cmbDuration.Items.Add("-- Any Duration --");
-            cmbDuration.Items.Add("1 day");
-            cmbDuration.Items.Add("2-3 days");
-            cmbDuration.Items.Add("4-6 days");
-            cmbDuration.Items.Add("1 week");
-            cmbDuration.Items.Add("2 weeks");
-            cmbDuration.Items.Add("3+ weeks");
+            cmbDuration.Items.Add("1 Day");
+            cmbDuration.Items.Add("2-3 Days");
+            cmbDuration.Items.Add("4-6 Days");
+            cmbDuration.Items.Add("1 Week");
+            cmbDuration.Items.Add("2 Weeks");
+            cmbDuration.Items.Add("3 Weeks");
+            cmbDuration.Items.Add("1+ Month");
+
+            // Set default selection
             cmbDuration.SelectedIndex = 0;
         }
 
         private void LoadRatingOptions()
         {
+            // Add rating options to the dropdown
             cmbRating.Items.Add("-- Any Rating --");
-            cmbRating.Items.Add("1+ stars");
-            cmbRating.Items.Add("2+ stars");
-            cmbRating.Items.Add("3+ stars");
-            cmbRating.Items.Add("4+ stars");
-            cmbRating.Items.Add("5 stars");
+            cmbRating.Items.Add("1+ Star");
+            cmbRating.Items.Add("2+ Stars");
+            cmbRating.Items.Add("3+ Stars");
+            cmbRating.Items.Add("4+ Stars");
+            cmbRating.Items.Add("5 Stars Only");
+
+            // Set default selection
             cmbRating.SelectedIndex = 0;
         }
 
-        private void CacheSearchLists()
+        // Helper method to determine duration range based on selection
+        private void GetDurationRange(int durationIndex, out int minDuration, out int maxDuration)
         {
-            try
+            // Default values (Any duration)
+            minDuration = 0;
+            maxDuration = int.MaxValue;
+
+            switch (durationIndex)
             {
-                using (SqlConnection connection = new SqlConnection(connectionString))
-                {
-                    connection.Open();
-
-                    // Cache all destination names
-                    string destQuery = "SELECT Name FROM DESTINATION ORDER BY Name";
-                    SqlCommand destCmd = new SqlCommand(destQuery, connection);
-
-                    using (SqlDataReader reader = destCmd.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            destinationNames.Add(reader["Name"].ToString());
-                        }
-                    }
-
-                    // Cache all operator names
-                    string opQuery = "SELECT AgencyName FROM TOUR_OPERATOR ORDER BY AgencyName";
-                    SqlCommand opCmd = new SqlCommand(opQuery, connection);
-
-                    using (SqlDataReader reader = opCmd.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            operatorNames.Add(reader["AgencyName"].ToString());
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Error loading search data: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                case 0: // -- Any Duration --
+                    // Use default values
+                    break;
+                case 1: // 1 Day
+                    minDuration = 1;
+                    maxDuration = 1;
+                    break;
+                case 2: // 2-3 Days
+                    minDuration = 2;
+                    maxDuration = 3;
+                    break;
+                case 3: // 4-6 Days
+                    minDuration = 4;
+                    maxDuration = 6;
+                    break;
+                case 4: // 1 Week
+                    minDuration = 7;
+                    maxDuration = 7;
+                    break;
+                case 5: // 2 Weeks
+                    minDuration = 14;
+                    maxDuration = 14;
+                    break;
+                case 6: // 3 Weeks
+                    minDuration = 21;
+                    maxDuration = 21;
+                    break;
+                case 7: // 1+ Month
+                    minDuration = 30;
+                    maxDuration = int.MaxValue;
+                    break;
             }
         }
 
-        private void txtDestinationSearch_TextChanged(object sender, EventArgs e)
+        // Helper method to determine minimum rating based on selection
+        private void GetMinimumRating(int ratingIndex, out double minRating)
         {
-            string searchText = txtDestinationSearch.Text.Trim();
+            // Default value (Any rating)
+            minRating = 0.0;
 
-            if (searchText.Length >= MIN_SEARCH_CHARS)
+            switch (ratingIndex)
             {
-                // Filter destinations that contain the search text
-                var suggestions = destinationNames
-                    .Where(d => d.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0)
-                    .Take(5) // Limit to 5 suggestions
-                    .ToList();
-
-                lstDestinationSuggestions.Items.Clear();
-                foreach (var suggestion in suggestions)
-                {
-                    lstDestinationSuggestions.Items.Add(suggestion);
-                }
-
-                if (lstDestinationSuggestions.Items.Count > 0)
-                {
-                    lstDestinationSuggestions.Height = Math.Min(lstDestinationSuggestions.Items.Count * 23, 115);
-                    lstDestinationSuggestions.Visible = true;
-                }
-                else
-                {
-                    lstDestinationSuggestions.Visible = false;
-                }
-            }
-            else
-            {
-                lstDestinationSuggestions.Visible = false;
-            }
-        }
-
-        private void txtOperatorSearch_TextChanged(object sender, EventArgs e)
-        {
-            string searchText = txtOperatorSearch.Text.Trim();
-
-            if (searchText.Length >= MIN_SEARCH_CHARS)
-            {
-                // Filter operators that contain the search text
-                var suggestions = operatorNames
-                    .Where(o => o.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0)
-                    .Take(5) // Limit to 5 suggestions
-                    .ToList();
-
-                lstOperatorSuggestions.Items.Clear();
-                foreach (var suggestion in suggestions)
-                {
-                    lstOperatorSuggestions.Items.Add(suggestion);
-                }
-
-                if (lstOperatorSuggestions.Items.Count > 0)
-                {
-                    lstOperatorSuggestions.Height = Math.Min(lstOperatorSuggestions.Items.Count * 23, 115);
-                    lstOperatorSuggestions.Visible = true;
-                }
-                else
-                {
-                    lstOperatorSuggestions.Visible = false;
-                }
-            }
-            else
-            {
-                lstOperatorSuggestions.Visible = false;
-            }
-        }
-
-        private void lstDestinationSuggestions_Click(object sender, EventArgs e)
-        {
-            if (lstDestinationSuggestions.SelectedItem != null)
-            {
-                txtDestinationSearch.Text = lstDestinationSuggestions.SelectedItem.ToString();
-                lstDestinationSuggestions.Visible = false;
-            }
-        }
-
-        private void lstOperatorSuggestions_Click(object sender, EventArgs e)
-        {
-            if (lstOperatorSuggestions.SelectedItem != null)
-            {
-                txtOperatorSearch.Text = lstOperatorSuggestions.SelectedItem.ToString();
-                lstOperatorSuggestions.Visible = false;
+                case 0: // -- Any Rating --
+                    // Use default value
+                    break;
+                case 1: // 1+ Star
+                    minRating = 1.0;
+                    break;
+                case 2: // 2+ Stars
+                    minRating = 2.0;
+                    break;
+                case 3: // 3+ Stars
+                    minRating = 3.0;
+                    break;
+                case 4: // 4+ Stars
+                    minRating = 4.0;
+                    break;
+                case 5: // 5 Stars Only
+                    minRating = 5.0;
+                    break;
             }
         }
 
@@ -297,6 +239,149 @@ namespace TravelEase
             isCardView = false;
         }
 
+        private void SearchTrips()
+        {
+            try
+            {
+                string destination = cmbDestination.SelectedIndex == 0 ? string.Empty : cmbDestination.SelectedItem.ToString();
+                string category = cmbCategory.SelectedIndex == 0 ? string.Empty : cmbCategory.SelectedItem.ToString();
+                DateTime startDate = dtpStartDate.Value.Date;
+                DateTime endDate = dtpEndDate.Value.Date;
+                decimal minPrice = numMinPrice.Value;
+                decimal maxPrice = numMaxPrice.Value;
+                string difficulty = cmbDifficulty.SelectedIndex == 0 ? string.Empty : cmbDifficulty.SelectedItem.ToString();
+
+                // Get duration filter
+                int minDuration = 0;
+                int maxDuration = int.MaxValue;
+                GetDurationRange(cmbDuration.SelectedIndex, out minDuration, out maxDuration);
+
+                // Get rating filter
+                double minRating = 0;
+                GetMinimumRating(cmbRating.SelectedIndex, out minRating);
+
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    connection.Open();
+
+                    // Check if Trip_REVIEW table exists and has a Rating column
+                    bool hasRatingColumn = false;
+                    try
+                    {
+                        SqlCommand checkCmd = new SqlCommand(
+                            "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Trip_REVIEW'", connection);
+                        int tableExists = (int)checkCmd.ExecuteScalar();
+
+                        if (tableExists > 0)
+                        {
+                            SqlCommand colCmd = new SqlCommand(
+                                "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Trip_REVIEW' AND COLUMN_NAME = 'Rating'", connection);
+                            int colExists = (int)colCmd.ExecuteScalar();
+                            hasRatingColumn = (colExists > 0);
+                        }
+                    }
+                    catch
+                    {
+                        // If check fails, assume no rating capability
+                        hasRatingColumn = false;
+                    }
+
+                    // Build the query based on database structure
+                    string ratingColumn;
+                    if (hasRatingColumn)
+                    {
+                        ratingColumn = "ISNULL((SELECT AVG(CAST(R.Rating AS FLOAT)) FROM Trip_REVIEW R WHERE R.TripID = T.TripID), 0) AS Rating";
+                    }
+                    else
+                    {
+                        // Use a dummy rating column with always 0 value
+                        ratingColumn = "0 AS Rating";
+                    }
+
+                    string query = $@"
+                    SELECT 
+                        T.TripID, T.Title, D.Name AS Destination, 
+                        T.StartDate, T.EndDate, T.Duration_Days AS Duration, 
+                        T.Price, T.Difficulty, TC.Name AS CategoryName,
+                        T.Capacity, 
+                        {ratingColumn},
+                        (T.Capacity - ISNULL((
+                            SELECT SUM(B.NoOfTravelers) 
+                            FROM BOOKING B 
+                            WHERE B.TripID = T.TripID AND B.Status IN ('Confirmed', 'Pending')
+                        ), 0)) AS AvailableSpots
+                    FROM TRIP T
+                    INNER JOIN DESTINATION D ON T.DestinationID = D.DestinationID
+                    INNER JOIN TRIP_CATEGORY TC ON T.CategoryID = TC.CategoryID
+                    WHERE 
+                        T.Status = 'Active'
+                        AND (@StartDate IS NULL OR T.StartDate >= @StartDate)
+                        AND (@EndDate IS NULL OR T.EndDate <= @EndDate)
+                        AND (@MinPrice IS NULL OR T.Price >= @MinPrice)
+                        AND (@MaxPrice IS NULL OR T.Price <= @MaxPrice)
+                        AND (@Destination = '' OR D.Name = @Destination)
+                        AND (@Category = '' OR TC.Name = @Category)
+                        AND (@Difficulty = '' OR T.Difficulty = @Difficulty)
+                        AND (T.Duration_Days BETWEEN @MinDuration AND @MaxDuration)";
+
+                    // Only add rating filter if table has rating column
+                    if (hasRatingColumn && minRating > 0)
+                    {
+                        query += " AND (ISNULL((SELECT AVG(CAST(R.Rating AS FLOAT)) FROM Trip_REVIEW R WHERE R.TripID = T.TripID), 0) >= @MinRating)";
+                    }
+
+                    query += " ORDER BY T.StartDate";
+
+                    SqlCommand command = new SqlCommand(query, connection);
+                    command.Parameters.AddWithValue("@StartDate", startDate == DateTime.MinValue ? DBNull.Value : (object)startDate);
+                    command.Parameters.AddWithValue("@EndDate", endDate == DateTime.MaxValue ? DBNull.Value : (object)endDate);
+                    command.Parameters.AddWithValue("@MinPrice", minPrice == 0 ? DBNull.Value : (object)minPrice);
+                    command.Parameters.AddWithValue("@MaxPrice", maxPrice == 0 ? DBNull.Value : (object)maxPrice);
+                    command.Parameters.AddWithValue("@Destination", destination);
+                    command.Parameters.AddWithValue("@Category", category);
+                    command.Parameters.AddWithValue("@Difficulty", difficulty);
+                    command.Parameters.AddWithValue("@MinDuration", minDuration);
+                    command.Parameters.AddWithValue("@MaxDuration", maxDuration);
+
+                    // Only add parameter if needed
+                    if (hasRatingColumn && minRating > 0)
+                    {
+                        command.Parameters.AddWithValue("@MinRating", minRating);
+                    }
+
+                    SqlDataAdapter adapter = new SqlDataAdapter(command);
+                    searchResults = new DataTable();
+                    adapter.Fill(searchResults);
+
+                    if (searchResults.Rows.Count == 0)
+                    {
+                        MessageBox.Show("No trips found matching your search criteria.", "No Results", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+
+                    // Update UI based on view mode
+                    if (isCardView)
+                    {
+                        dgvSearchResults.Visible = false;
+                        flpCardView.Visible = true;
+                        GenerateCardView();
+                    }
+                    else
+                    {
+                        dgvSearchResults.DataSource = searchResults;
+                        dgvSearchResults.Visible = true;
+                        flpCardView.Visible = false;
+                        FormatDataGridView(); // Make sure to format after setting data source
+                    }
+
+                    lblResultsCount.Text = $"Found {searchResults.Rows.Count} trips matching your criteria";
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error searching trips: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
         private void FormatDataGridView()
         {
             // Set column headers and formatting
@@ -308,13 +393,7 @@ namespace TravelEase
                 dgvSearchResults.Columns["Title"].Width = 180;
 
                 dgvSearchResults.Columns["Destination"].HeaderText = "Destination";
-                dgvSearchResults.Columns["Destination"].Width = 140;
-
-                if (dgvSearchResults.Columns.Contains("OperatorName"))
-                {
-                    dgvSearchResults.Columns["OperatorName"].HeaderText = "Tour Operator";
-                    dgvSearchResults.Columns["OperatorName"].Width = 140;
-                }
+                dgvSearchResults.Columns["Destination"].Width = 120;
 
                 dgvSearchResults.Columns["StartDate"].HeaderText = "Start Date";
                 dgvSearchResults.Columns["StartDate"].DefaultCellStyle.Format = "dd-MMM-yyyy";
@@ -325,30 +404,31 @@ namespace TravelEase
                 dgvSearchResults.Columns["EndDate"].Width = 110;
 
                 dgvSearchResults.Columns["Duration"].HeaderText = "Days";
-                dgvSearchResults.Columns["Duration"].Width = 60;
+                dgvSearchResults.Columns["Duration"].Width = 50;
 
                 dgvSearchResults.Columns["Price"].HeaderText = "Price";
                 dgvSearchResults.Columns["Price"].DefaultCellStyle.Format = "c2";
                 dgvSearchResults.Columns["Price"].Width = 90;
 
                 dgvSearchResults.Columns["Difficulty"].HeaderText = "Difficulty";
-                dgvSearchResults.Columns["Difficulty"].Width = 90;
+                dgvSearchResults.Columns["Difficulty"].Width = 80;
 
                 dgvSearchResults.Columns["CategoryName"].HeaderText = "Category";
                 dgvSearchResults.Columns["CategoryName"].Width = 100;
+
+                // Add Rating column formatting if it exists
+                if (dgvSearchResults.Columns.Contains("Rating"))
+                {
+                    dgvSearchResults.Columns["Rating"].HeaderText = "Rating";
+                    dgvSearchResults.Columns["Rating"].DefaultCellStyle.Format = "F1";
+                    dgvSearchResults.Columns["Rating"].Width = 60;
+                }
 
                 dgvSearchResults.Columns["Capacity"].HeaderText = "Capacity";
                 dgvSearchResults.Columns["Capacity"].Width = 70;
 
                 dgvSearchResults.Columns["AvailableSpots"].HeaderText = "Available";
                 dgvSearchResults.Columns["AvailableSpots"].Width = 70;
-
-                if (dgvSearchResults.Columns.Contains("Rating"))
-                {
-                    dgvSearchResults.Columns["Rating"].HeaderText = "Rating";
-                    dgvSearchResults.Columns["Rating"].DefaultCellStyle.Format = "N1";
-                    dgvSearchResults.Columns["Rating"].Width = 70;
-                }
 
                 // Add buttons
                 if (!dgvSearchResults.Columns.Contains("Details"))
@@ -398,184 +478,8 @@ namespace TravelEase
             dgvSearchResults.DefaultCellStyle.WrapMode = DataGridViewTriState.True;
 
             // Set cell click event handler
+            dgvSearchResults.CellContentClick -= DgvSearchResults_CellContentClick; // Remove to avoid multiple handlers
             dgvSearchResults.CellContentClick += DgvSearchResults_CellContentClick;
-        }
-
-        private void SearchTrips()
-        {
-            try
-            {
-                string destination = cmbDestination.SelectedIndex == 0 ? string.Empty : cmbDestination.SelectedItem.ToString();
-                string category = cmbCategory.SelectedIndex == 0 ? string.Empty : cmbCategory.SelectedItem.ToString();
-                DateTime startDate = dtpStartDate.Value.Date;
-                DateTime endDate = dtpEndDate.Value.Date;
-                decimal minPrice = numMinPrice.Value;
-                decimal maxPrice = numMaxPrice.Value;
-                string difficulty = cmbDifficulty.SelectedIndex == 0 ? string.Empty : cmbDifficulty.SelectedItem.ToString();
-
-                // New filters
-                string durationFilter = GetDurationFilter(cmbDuration.SelectedIndex);
-                decimal ratingFilter = GetRatingFilter(cmbRating.SelectedIndex);
-
-                // Search textbox values
-                string destinationSearch = txtDestinationSearch.Text.Trim();
-                string operatorSearch = txtOperatorSearch.Text.Trim();
-
-                using (SqlConnection connection = new SqlConnection(connectionString))
-                {
-                    connection.Open();
-
-                    // Find this code in the SearchTrips() method and replace the query string:
-
-                    string query = @"
-                        SELECT 
-                            T.TripID, T.Title, D.Name AS Destination, 
-                            T.StartDate, T.EndDate, T.Duration_Days AS Duration, 
-                            T.Price, T.Difficulty, TC.Name AS CategoryName,
-                            T.Capacity, 
-                            (T.Capacity - ISNULL((
-                                SELECT SUM(B.NoOfTravelers) 
-                                FROM BOOKING B 
-                                WHERE B.TripID = T.TripID AND B.Status IN ('Confirmed', 'Pending')
-                            ), 0)) AS AvailableSpots,
-                            OP.AgencyName AS OperatorName,
-                            ISNULL((
-                                SELECT AVG(TR.Rating)
-                                FROM Trip_REVIEW TR
-                                INNER JOIN REVIEW R ON TR.ReviewID = R.ReviewID
-                                WHERE TR.TripID = T.TripID
-                            ), 0) AS Rating
-                        FROM TRIP T
-                        INNER JOIN DESTINATION D ON T.DestinationID = D.DestinationID
-                        INNER JOIN TRIP_CATEGORY TC ON T.CategoryID = TC.CategoryID
-                        LEFT JOIN TOUR_OPERATOR OP ON OP.OperatorID = T.OperatorID
-                        WHERE 
-                            T.Status = 'Active'
-                            AND (@StartDate IS NULL OR T.StartDate >= @StartDate)
-                            AND (@EndDate IS NULL OR T.EndDate <= @EndDate)
-                            AND (@MinPrice IS NULL OR T.Price >= @MinPrice)
-                            AND (@MaxPrice IS NULL OR T.Price <= @MaxPrice)
-                            AND (@Destination = '' OR D.Name = @Destination)
-                            AND (@Category = '' OR TC.Name = @Category)
-                            AND (@Difficulty = '' OR T.Difficulty = @Difficulty)
-                            AND (@DurationMinDays IS NULL OR T.Duration_Days >= @DurationMinDays)
-                            AND (@DurationMaxDays IS NULL OR T.Duration_Days <= @DurationMaxDays)
-                            AND (@Rating IS NULL OR (
-                                SELECT AVG(TR.Rating)
-                                FROM Trip_REVIEW TR
-                                INNER JOIN REVIEW R ON TR.ReviewID = R.ReviewID
-                                WHERE TR.TripID = T.TripID
-                            ) >= @Rating)
-                            AND (@DestinationSearch = '' OR D.Name LIKE '%' + @DestinationSearch + '%')
-                            AND (@OperatorSearch = '' OR OP.AgencyName LIKE '%' + @OperatorSearch + '%')
-                        ORDER BY T.StartDate";
-
-                    SqlCommand command = new SqlCommand(query, connection);
-                    command.Parameters.AddWithValue("@StartDate", startDate == DateTime.MinValue ? DBNull.Value : (object)startDate);
-                    command.Parameters.AddWithValue("@EndDate", endDate == DateTime.MaxValue ? DBNull.Value : (object)endDate);
-                    command.Parameters.AddWithValue("@MinPrice", minPrice == 0 ? DBNull.Value : (object)minPrice);
-                    command.Parameters.AddWithValue("@MaxPrice", maxPrice == 0 ? DBNull.Value : (object)maxPrice);
-                    command.Parameters.AddWithValue("@Destination", destination);
-                    command.Parameters.AddWithValue("@Category", category);
-                    command.Parameters.AddWithValue("@Difficulty", difficulty);
-
-                    // Add duration parameters
-                    if (string.IsNullOrEmpty(durationFilter))
-                    {
-                        command.Parameters.AddWithValue("@DurationMinDays", DBNull.Value);
-                        command.Parameters.AddWithValue("@DurationMaxDays", DBNull.Value);
-                    }
-                    else
-                    {
-                        string[] parts = durationFilter.Split('-');
-                        command.Parameters.AddWithValue("@DurationMinDays", int.Parse(parts[0]));
-                        if (parts.Length > 1 && !string.IsNullOrEmpty(parts[1]))
-                        {
-                            command.Parameters.AddWithValue("@DurationMaxDays", int.Parse(parts[1]));
-                        }
-                        else
-                        {
-                            command.Parameters.AddWithValue("@DurationMaxDays", DBNull.Value);
-                        }
-                    }
-
-                    // Add rating parameter
-                    command.Parameters.AddWithValue("@Rating", ratingFilter == 0 ? DBNull.Value : (object)ratingFilter);
-
-                    // Add search parameters
-                    command.Parameters.AddWithValue("@DestinationSearch", destinationSearch);
-                    command.Parameters.AddWithValue("@OperatorSearch", operatorSearch);
-
-                    SqlDataAdapter adapter = new SqlDataAdapter(command);
-                    searchResults = new DataTable();
-                    adapter.Fill(searchResults);
-
-                    if (searchResults.Rows.Count == 0)
-                    {
-                        MessageBox.Show("No trips found matching your search criteria.", "No Results", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
-
-                    // Update UI based on view mode
-                    if (isCardView)
-                    {
-                        dgvSearchResults.Visible = false;
-                        flpCardView.Visible = true;
-                        GenerateCardView();
-                    }
-                    else
-                    {
-                        dgvSearchResults.DataSource = searchResults;
-                        dgvSearchResults.Visible = true;
-                        flpCardView.Visible = false;
-                    }
-
-                    lblResultsCount.Text = $"Found {searchResults.Rows.Count} trips matching your criteria";
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Error searching trips: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        private string GetDurationFilter(int selectedIndex)
-        {
-            switch (selectedIndex)
-            {
-                case 1: // 1 day
-                    return "1-1";
-                case 2: // 2-3 days
-                    return "2-3";
-                case 3: // 4-6 days
-                    return "4-6";
-                case 4: // 1 week
-                    return "7-7";
-                case 5: // 2 weeks
-                    return "8-14";
-                case 6: // 3+ weeks
-                    return "21-";
-                default: // Any Duration
-                    return "";
-            }
-        }
-
-        private decimal GetRatingFilter(int selectedIndex)
-        {
-            switch (selectedIndex)
-            {
-                case 1: // 1+ stars
-                    return 1;
-                case 2: // 2+ stars
-                    return 2;
-                case 3: // 3+ stars
-                    return 3;
-                case 4: // 4+ stars
-                    return 4;
-                case 5: // 5 stars
-                    return 5;
-                default: // Any Rating
-                    return 0;
-            }
         }
 
         private void GenerateCardView()
@@ -588,8 +492,8 @@ namespace TravelEase
             {
                 // Create card panel
                 Panel card = new Panel();
-                card.Width = 320;
-                card.Height = 280;  // Increased height for extra info
+                card.Width = 300;
+                card.Height = 270; // Increased height for rating
                 card.Margin = new Padding(10);
                 card.BackColor = Color.White;
                 card.BorderStyle = BorderStyle.FixedSingle;
@@ -600,7 +504,7 @@ namespace TravelEase
                 lblTitle.Font = new Font("Century Gothic", 12, FontStyle.Bold);
                 lblTitle.ForeColor = Color.FromArgb(41, 128, 185);
                 lblTitle.Location = new Point(10, 10);
-                lblTitle.Size = new Size(300, 25);
+                lblTitle.Size = new Size(280, 25);
                 card.Controls.Add(lblTitle);
 
                 // Create destination
@@ -608,25 +512,25 @@ namespace TravelEase
                 lblDestination.Text = "Destination: " + row["Destination"].ToString();
                 lblDestination.Font = new Font("Century Gothic", 10);
                 lblDestination.Location = new Point(10, 40);
-                lblDestination.Size = new Size(300, 20);
+                lblDestination.Size = new Size(280, 20);
                 card.Controls.Add(lblDestination);
-
-                // Create tour operator
-                Label lblOperator = new Label();
-                lblOperator.Text = "Operator: " + (row["OperatorName"] != DBNull.Value ? row["OperatorName"].ToString() : "Not specified");
-                lblOperator.Font = new Font("Century Gothic", 9);
-                lblOperator.Location = new Point(10, 65);
-                lblOperator.Size = new Size(300, 20);
-                card.Controls.Add(lblOperator);
 
                 // Create dates
                 Label lblDates = new Label();
                 lblDates.Text = "Dates: " + Convert.ToDateTime(row["StartDate"]).ToString("dd MMM yyyy") +
                                 " - " + Convert.ToDateTime(row["EndDate"]).ToString("dd MMM yyyy");
                 lblDates.Font = new Font("Century Gothic", 9);
-                lblDates.Location = new Point(10, 90);
-                lblDates.Size = new Size(300, 20);
+                lblDates.Location = new Point(10, 65);
+                lblDates.Size = new Size(280, 20);
                 card.Controls.Add(lblDates);
+
+                // Create duration
+                Label lblDuration = new Label();
+                lblDuration.Text = "Duration: " + row["Duration"].ToString() + " day(s)";
+                lblDuration.Font = new Font("Century Gothic", 9);
+                lblDuration.Location = new Point(10, 90);
+                lblDuration.Size = new Size(280, 20);
+                card.Controls.Add(lblDuration);
 
                 // Create price
                 Label lblPrice = new Label();
@@ -634,35 +538,39 @@ namespace TravelEase
                 lblPrice.Font = new Font("Century Gothic", 11, FontStyle.Bold);
                 lblPrice.ForeColor = Color.ForestGreen;
                 lblPrice.Location = new Point(10, 115);
-                lblPrice.Size = new Size(300, 20);
+                lblPrice.Size = new Size(280, 20);
                 card.Controls.Add(lblPrice);
+
+                // Create rating - check if Rating column exists
+                Label lblRating = new Label();
+                if (row.Table.Columns.Contains("Rating"))
+                {
+                    double rating = 0;
+                    if (!Convert.IsDBNull(row["Rating"]))
+                    {
+                        rating = Convert.ToDouble(row["Rating"]);
+                    }
+                    lblRating.Text = "Rating: " + rating.ToString("F1") + " / 5.0";
+                }
+                else
+                {
+                    lblRating.Text = "Rating: Not Available";
+                }
+
+                lblRating.Font = new Font("Century Gothic", 9, FontStyle.Bold);
+                lblRating.ForeColor = Color.Orange;
+                lblRating.Location = new Point(10, 140);
+                lblRating.Size = new Size(280, 20);
+                card.Controls.Add(lblRating);
 
                 // Create category and difficulty
                 Label lblCategoryDifficulty = new Label();
                 lblCategoryDifficulty.Text = "Category: " + row["CategoryName"].ToString() +
                                             " | Difficulty: " + row["Difficulty"].ToString();
                 lblCategoryDifficulty.Font = new Font("Century Gothic", 9);
-                lblCategoryDifficulty.Location = new Point(10, 140);
-                lblCategoryDifficulty.Size = new Size(300, 20);
+                lblCategoryDifficulty.Location = new Point(10, 165);
+                lblCategoryDifficulty.Size = new Size(280, 20);
                 card.Controls.Add(lblCategoryDifficulty);
-
-                // Create rating
-                Label lblRating = new Label();
-                string ratingText = "Rating: ";
-                if (row["Rating"] != DBNull.Value)
-                {
-                    decimal rating = Convert.ToDecimal(row["Rating"]);
-                    ratingText += rating.ToString("N1") + " / 5.0";
-                }
-                else
-                {
-                    ratingText += "Not rated yet";
-                }
-                lblRating.Text = ratingText;
-                lblRating.Font = new Font("Century Gothic", 9);
-                lblRating.Location = new Point(10, 165);
-                lblRating.Size = new Size(300, 20);
-                card.Controls.Add(lblRating);
 
                 // Create availability
                 Label lblAvailability = new Label();
@@ -670,7 +578,7 @@ namespace TravelEase
                                       " of " + row["Capacity"].ToString();
                 lblAvailability.Font = new Font("Century Gothic", 9);
                 lblAvailability.Location = new Point(10, 190);
-                lblAvailability.Size = new Size(300, 20);
+                lblAvailability.Size = new Size(280, 20);
                 card.Controls.Add(lblAvailability);
 
                 // Create buttons
@@ -680,7 +588,7 @@ namespace TravelEase
                 btnDetails.BackColor = Color.FromArgb(41, 128, 185);
                 btnDetails.ForeColor = Color.White;
                 btnDetails.Location = new Point(10, 220);
-                btnDetails.Size = new Size(95, 30);
+                btnDetails.Size = new Size(90, 30);
                 btnDetails.Tag = row["TripID"];
                 btnDetails.Click += (s, e) => ViewTripDetails(Convert.ToInt32((s as Button).Tag));
                 card.Controls.Add(btnDetails);
@@ -690,8 +598,8 @@ namespace TravelEase
                 btnAddWishlist.FlatStyle = FlatStyle.Flat;
                 btnAddWishlist.BackColor = Color.FromArgb(155, 89, 182);
                 btnAddWishlist.ForeColor = Color.White;
-                btnAddWishlist.Location = new Point(110, 220);
-                btnAddWishlist.Size = new Size(105, 30);
+                btnAddWishlist.Location = new Point(105, 220);
+                btnAddWishlist.Size = new Size(90, 30);
                 btnAddWishlist.Tag = row["TripID"];
                 btnAddWishlist.Click += (s, e) => AddToWishlist(Convert.ToInt32((s as Button).Tag));
                 card.Controls.Add(btnAddWishlist);
@@ -701,7 +609,7 @@ namespace TravelEase
                 btnBook.FlatStyle = FlatStyle.Flat;
                 btnBook.BackColor = Color.FromArgb(46, 204, 113);
                 btnBook.ForeColor = Color.White;
-                btnBook.Location = new Point(220, 220);
+                btnBook.Location = new Point(200, 220);
                 btnBook.Size = new Size(90, 30);
                 btnBook.Tag = row["TripID"];
                 btnBook.Click += (s, e) => BookTrip(Convert.ToInt32((s as Button).Tag));
@@ -799,10 +707,6 @@ namespace TravelEase
 
         private void btnSearch_Click(object sender, EventArgs e)
         {
-            // Hide suggestion lists when searching
-            lstDestinationSuggestions.Visible = false;
-            lstOperatorSuggestions.Visible = false;
-
             SearchTrips();
         }
 
@@ -816,14 +720,10 @@ namespace TravelEase
             numMinPrice.Value = 0;
             numMaxPrice.Value = 9999999;
             cmbDifficulty.SelectedIndex = 0;
+
+            // Reset new filters
             cmbDuration.SelectedIndex = 0;
             cmbRating.SelectedIndex = 0;
-            txtDestinationSearch.Clear();
-            txtOperatorSearch.Clear();
-
-            // Hide suggestion lists
-            lstDestinationSuggestions.Visible = false;
-            lstOperatorSuggestions.Visible = false;
 
             // Clear results
             searchResults.Clear();
@@ -831,7 +731,6 @@ namespace TravelEase
             flpCardView.Controls.Clear();
             lblResultsCount.Text = "Use the search filters to find your perfect trip";
         }
-
         private void btnToggleView_Click(object sender, EventArgs e)
         {
             isCardView = !isCardView;

@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Windows.Forms;
 using TripBookingReportApp;
 using TravelAnalyticsApp;
+using TravelApplication;
 
 namespace DatabaseProject
 {
@@ -14,9 +15,16 @@ namespace DatabaseProject
         private Button btnPaymentFraud;
         private Button btnTravelerDemographics;
         private Button btnTripBookingRevenue;
+        private Button btnTOgrowth;
+        string id; 
 
         public ReportsDashboardForm()
         {
+            InitializeComponents();
+        }
+        public ReportsDashboardForm(string iid)
+        {
+            id = iid;
             InitializeComponents();
         }
 
@@ -48,8 +56,8 @@ namespace DatabaseProject
             };
             btnAbandonedBooking.Click += (s, e) =>
             {
-                //using (var form = new AbandonedBookingReportForm())
-                   // form.ShowDialog(this);
+                using (var form = new AbandonedBookingReportForm())
+                    form.ShowDialog(this);
             };
 
             // Platform Growth Report
@@ -74,8 +82,8 @@ namespace DatabaseProject
             };
             btnPaymentFraud.Click += (s, e) =>
             {
-                //using (var form = new PaymentFraudReportForm())
-                  //  form.ShowDialog(this);
+                using (var form = new PaymentFraudReportForm())
+                    form.ShowDialog(this);
             };
 
             // Traveler Demographics and Preferences Report
@@ -104,6 +112,18 @@ namespace DatabaseProject
                     form.ShowDialog(this);
             };
 
+            btnTOgrowth = new Button
+            {
+                Text = "Tour Operator performance",
+                Location = new Point(50, 410),
+                Size = new Size(300, 40)
+            };
+            btnTOgrowth.Click += (s, e) =>
+            {
+                using (var form = new TourOperatorPerformanceReportForm(id))
+                    form.ShowDialog(this);
+            };
+
             // Add controls to the form
             this.Controls.AddRange(new Control[]
             {
@@ -112,7 +132,8 @@ namespace DatabaseProject
                 btnPlatformGrowth,
                 btnPaymentFraud,
                 btnTravelerDemographics,
-                btnTripBookingRevenue
+                btnTripBookingRevenue,
+                btnTOgrowth
             });
         }
     }

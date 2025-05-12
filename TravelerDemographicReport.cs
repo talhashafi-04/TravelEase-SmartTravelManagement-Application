@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Data;
 using System.Data.SqlClient;
-using System.Drawing;
-using System.Linq;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
 
@@ -10,674 +8,646 @@ namespace TravelAnalyticsApp
 {
     public partial class TravelerDemographicsForm : Form
     {
-        // Connection string - replace with your connection string
-        private string connectionString = "Data Source=YOUR_SERVER;Initial Catalog=YOUR_DB;Integrated Security=True";
-        private DataTable reportData;
+        private string connectionString = @"Data Source=TALHA-SHAFI\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;Encrypt=False;";
 
         public TravelerDemographicsForm()
         {
             InitializeComponent();
+
+            // Set default dates - use a wider range to ensure we catch data
+            dtpStartDate.Value = DateTime.Now.AddYears(-5);  // 5 years ago
+            dtpEndDate.Value = DateTime.Now.AddYears(5);     // 5 years in the future
         }
 
         private void TravelerDemographicsForm_Load(object sender, EventArgs e)
         {
-            // Set default dates for the date pickers
-            dtpStartDate.Value = DateTime.Now.AddMonths(-6);
-            dtpEndDate.Value = DateTime.Now;
+            // Form load event - show ready status
+            lblStatus.Text = "Ready";
 
-            // Load trip categories
+            // Test database connection
+            TestDatabaseConnection();
+
+            // Load trip categories for filter dropdown
             LoadTripCategories();
+        }
 
-            // Initialize charts
-            InitializeCharts();
+        private void TestDatabaseConnection()
+        {
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    connection.Open();
+                    lblStatus.Text = "Database connection successful";
+
+                    // Check table counts - let's see how many records exist in key tables
+                    DisplayTableCount(connection, "[USER]");
+                    DisplayTableCount(connection, "TRAVELER");
+                    DisplayTableCount(connection, "BOOKING");
+                    DisplayTableCount(connection, "TRIP");
+                    DisplayTableCount(connection, "TRIP_CATEGORY");
+                    DisplayTableCount(connection, "DESTINATION");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Database connection error: " + ex.Message, "Connection Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void DisplayTableCount(SqlConnection connection, string tableName)
+        {
+            try
+            {
+                // Get count of records in the table
+                string query = $"SELECT COUNT(*) FROM {tableName}";
+                SqlCommand cmd = new SqlCommand(query, connection);
+                int count = (int)cmd.ExecuteScalar();
+
+                // Display result (use console or add a label to the form)
+                Console.WriteLine($"Table {tableName} has {count} records");
+
+                // Add a label to show counts on the form
+                Label countLabel = new Label
+                {
+                    Text = $"Table {tableName}: {count} records",
+                    AutoSize = true,
+                    Location = new System.Drawing.Point(10, 500 + (Controls.Count * 20)),
+                    ForeColor = System.Drawing.Color.Blue
+                };
+
+                this.Controls.Add(countLabel);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error checking {tableName}: {ex.Message}");
+
+                // Add error label
+                Label errorLabel = new Label
+                {
+                    Text = $"Error checking {tableName}: {ex.Message}",
+                    AutoSize = true,
+                    Location = new System.Drawing.Point(10, 500 + (Controls.Count * 20)),
+                    ForeColor = System.Drawing.Color.Red
+                };
+
+                this.Controls.Add(errorLabel);
+            }
         }
 
         private void LoadTripCategories()
         {
             try
             {
-                using (SqlConnection conn = new SqlConnection(connectionString))
+                string query = "SELECT CategoryID, Name FROM TRIP_CATEGORY ORDER BY Name";
+
+                using (SqlConnection connection = new SqlConnection(connectionString))
                 {
-                    string query = "SELECT CategoryID, Name FROM TRIP_CATEGORY ORDER BY Name";
-                    SqlDataAdapter adapter = new SqlDataAdapter(query, conn);
-                    DataTable dt = new DataTable();
-                    adapter.Fill(dt);
+                    connection.Open();
+                    SqlDataAdapter adapter = new SqlDataAdapter(query, connection);
+                    DataTable categories = new DataTable();
+                    adapter.Fill(categories);
 
-                    // Add "All" option
-                    DataRow dr = dt.NewRow();
-                    dr["CategoryID"] = 0;
-                    dr["Name"] = "All Categories";
-                    dt.Rows.InsertAt(dr, 0);
+                    if (categories.Rows.Count > 0)
+                    {
+                        // Add "All Categories" option
+                        DataRow allRow = categories.NewRow();
+                        allRow["CategoryID"] = 0;
+                        allRow["Name"] = "All Categories";
+                        categories.Rows.InsertAt(allRow, 0);
 
-                    cboCategoryFilter.DataSource = dt;
-                    cboCategoryFilter.DisplayMember = "Name";
-                    cboCategoryFilter.ValueMember = "CategoryID";
+                        cboCategoryFilter.DataSource = categories;
+                        cboCategoryFilter.DisplayMember = "Name";
+                        cboCategoryFilter.ValueMember = "CategoryID";
+                    }
+                    else
+                    {
+                        // If no categories exist, create a simple default option
+                        cboCategoryFilter.Items.Add("All Categories");
+                        cboCategoryFilter.SelectedIndex = 0;
+
+                        // Show warning message
+                        MessageBox.Show("No trip categories found in the database.", "Warning",
+                            MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    }
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error loading trip categories: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Error loading trip categories: " + ex.Message, "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-        }
-
-        private void InitializeCharts()
-        {
-            // Age Distribution Chart
-            chartAgeDistribution.Series.Clear();
-            chartAgeDistribution.Titles.Clear();
-            chartAgeDistribution.Titles.Add("Age Distribution");
-            Series ageSeries = new Series("Age Groups");
-            ageSeries.ChartType = SeriesChartType.Column;
-            chartAgeDistribution.Series.Add(ageSeries);
-            chartAgeDistribution.ChartAreas[0].AxisX.Title = "Age Groups";
-            chartAgeDistribution.ChartAreas[0].AxisY.Title = "Number of Travelers";
-            chartAgeDistribution.ChartAreas[0].AxisX.MajorGrid.Enabled = false;
-
-            // Nationality Distribution Chart
-            chartNationality.Series.Clear();
-            chartNationality.Titles.Clear();
-            chartNationality.Titles.Add("Top Nationalities");
-            Series nationalitySeries = new Series("Nationalities");
-            nationalitySeries.ChartType = SeriesChartType.Pie;
-            nationalitySeries.IsValueShownAsLabel = true;
-            nationalitySeries.Label = "#PERCENT{P0}";
-            chartNationality.Series.Add(nationalitySeries);
-
-            // Preferred Trip Types Chart
-            chartTripTypes.Series.Clear();
-            chartTripTypes.Titles.Clear();
-            chartTripTypes.Titles.Add("Preferred Trip Types");
-            Series tripTypeSeries = new Series("Trip Categories");
-            tripTypeSeries.ChartType = SeriesChartType.Doughnut;
-            tripTypeSeries.IsValueShownAsLabel = true;
-            tripTypeSeries.Label = "#PERCENT{P0}";
-            chartTripTypes.Series.Add(tripTypeSeries);
-
-            // Popular Destinations Chart
-            chartDestinations.Series.Clear();
-            chartDestinations.Titles.Clear();
-            chartDestinations.Titles.Add("Popular Destinations");
-            Series destinationSeries = new Series("Destinations");
-            destinationSeries.ChartType = SeriesChartType.Bar;
-            chartDestinations.Series.Add(destinationSeries);
-            chartDestinations.ChartAreas[0].AxisX.MajorGrid.Enabled = false;
-
-            // Spending Habits Chart
-            chartSpending.Series.Clear();
-            chartSpending.Titles.Clear();
-            chartSpending.Titles.Add("Average Spending by Trip Type");
-            Series spendingSeries = new Series("Avg. Spending");
-            spendingSeries.ChartType = SeriesChartType.Column;
-            spendingSeries.IsValueShownAsLabel = true;
-            spendingSeries.LabelFormat = "C0";
-            chartSpending.Series.Add(spendingSeries);
-            chartSpending.ChartAreas[0].AxisX.MajorGrid.Enabled = false;
-            chartSpending.ChartAreas[0].AxisY.LabelStyle.Format = "C0";
-            chartSpending.ChartAreas[0].AxisY.Title = "Average Amount Spent";
         }
 
         private void btnGenerateReport_Click(object sender, EventArgs e)
         {
             try
             {
-                // Show loading indicator
-                this.Cursor = Cursors.WaitCursor;
+                // Update status
                 lblStatus.Text = "Generating report...";
                 Application.DoEvents();
 
-                // Get parameters
-                DateTime startDate = dtpStartDate.Value.Date;
-                DateTime endDate = dtpEndDate.Value.Date.AddDays(1).AddSeconds(-1); // End of selected day
-                int categoryId = Convert.ToInt32(cboCategoryFilter.SelectedValue);
+                // Set report period label
+                lblReportPeriod.Text = $"Report Period: {dtpStartDate.Value.ToShortDateString()} to {dtpEndDate.Value.ToShortDateString()}";
 
-                // Collect all data
-                DataSet reportDataSet = GetTravelerDemographicsData(startDate, endDate, categoryId);
+                // Try a very simple query first to see if we can get ANY data
+                TestDataQuery();
 
-                // Update labels for overall metrics
-                UpdateSummaryMetrics(reportDataSet.Tables["Summary"]);
+                // Now try the full reports
+                LoadSummaryStatistics();
+                LoadTravelerDetails(); // Start with a simple data table
 
-                // Update charts
-                UpdateAgeDistributionChart(reportDataSet.Tables["AgeDistribution"]);
-                UpdateNationalityChart(reportDataSet.Tables["Nationalities"]);
-                UpdateTripTypesChart(reportDataSet.Tables["TripTypes"]);
-                UpdateDestinationsChart(reportDataSet.Tables["Destinations"]);
-                UpdateSpendingChart(reportDataSet.Tables["Spending"]);
-
-                // Update grid data
-                dgvTravelerData.DataSource = reportDataSet.Tables["TravelerDetails"];
-                AutoResizeDataGridViewColumns(dgvTravelerData);
-
-                // Update period label
-                lblReportPeriod.Text = $"Report Period: {startDate.ToShortDateString()} to {endDate.ToShortDateString()}";
+                // Only proceed with charts if data exists
+                if (lblTotalTravelers.Text != "0")
+                {
+                    LoadDemographics();
+                    LoadPreferences();
+                }
 
                 // Update status
-                lblStatus.Text = "Report generated successfully";
+                lblStatus.Text = "Report generation complete. If no data appears, your database may be empty.";
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error generating report: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 lblStatus.Text = "Error generating report";
-            }
-            finally
-            {
-                this.Cursor = Cursors.Default;
+                MessageBox.Show("Error generating report: " + ex.Message + "\n\nStack Trace: " + ex.StackTrace, "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-        private void AutoResizeDataGridViewColumns(DataGridView dgv)
+        private void TestDataQuery()
         {
-            // Auto-resize columns for better display
-            dgv.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCells);
-            // Ensure the last column fills the remaining space
-            if (dgv.Columns.Count > 0)
+            // Simple test query to check if ANY data exists that matches our criteria
+            string query = @"
+                SELECT COUNT(*) AS BookingCount
+                FROM BOOKING B
+                WHERE B.Date BETWEEN @StartDate AND @EndDate";
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
             {
-                dgv.Columns[dgv.Columns.Count - 1].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                connection.Open();
+
+                SqlCommand cmd = new SqlCommand(query, connection);
+                cmd.Parameters.AddWithValue("@StartDate", dtpStartDate.Value);
+                cmd.Parameters.AddWithValue("@EndDate", dtpEndDate.Value);
+
+                int count = (int)cmd.ExecuteScalar();
+
+                if (count == 0)
+                {
+                    MessageBox.Show($"No booking data found for the selected date range: {dtpStartDate.Value.ToShortDateString()} to {dtpEndDate.Value.ToShortDateString()}.\n\nTry selecting a wider date range or check if your database has booking data.",
+                        "No Data Found", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                else
+                {
+                    // Success - there is at least some data
+                    lblStatus.Text = $"Found {count} bookings in the selected date range.";
+                }
             }
         }
 
-        private DataSet GetTravelerDemographicsData(DateTime startDate, DateTime endDate, int categoryId)
+        private void LoadSummaryStatistics()
         {
-            DataSet ds = new DataSet();
-
             try
             {
-                using (SqlConnection conn = new SqlConnection(connectionString))
+                string filter = GetCategoryFilterClause();
+
+                string query = $@"
+                    SELECT 
+                        COUNT(DISTINCT T.TravelerID) AS TotalTravelers,
+                        COUNT(B.BookingID) AS TotalBookings,
+                        AVG(B.TotalAmount) AS AvgSpending,
+                        MIN(B.TotalAmount) AS MinSpending,
+                        MAX(B.TotalAmount) AS MaxSpending
+                    FROM TRAVELER T
+                    JOIN BOOKING B ON T.TravelerID = B.TravelerID
+                    JOIN TRIP TR ON B.TripID = TR.TripID
+                    WHERE B.Date BETWEEN @StartDate AND @EndDate
+                    {filter}";
+
+                using (SqlConnection connection = new SqlConnection(connectionString))
                 {
-                    conn.Open();
+                    connection.Open();
 
-                    // Create a general filter for category if specified
-                    string categoryFilter = categoryId > 0 ? $" AND t.CategoryID = {categoryId}" : "";
+                    SqlCommand cmd = new SqlCommand(query, connection);
+                    cmd.Parameters.AddWithValue("@StartDate", dtpStartDate.Value);
+                    cmd.Parameters.AddWithValue("@EndDate", dtpEndDate.Value);
 
-                    // 1. Get summary data
-                    string summarySql = @"
-                    SELECT 
-                        COUNT(DISTINCT tr.TravelerID) AS TotalTravelers,
-                        COUNT(DISTINCT b.BookingID) AS TotalBookings,
-                        AVG(b.TotalAmount) AS AvgSpending,
-                        MAX(b.TotalAmount) AS MaxSpending,
-                        MIN(CASE WHEN b.TotalAmount > 0 THEN b.TotalAmount ELSE NULL END) AS MinSpending
-                    FROM 
-                        TRAVELER tr
-                        JOIN BOOKING b ON tr.TravelerID = b.TravelerID
-                        JOIN TRIP t ON b.TripID = t.TripID
-                    WHERE 
-                        b.Date BETWEEN @StartDate AND @EndDate" + categoryFilter;
+                    SqlDataReader reader = cmd.ExecuteReader();
 
-                    SqlCommand cmdSummary = new SqlCommand(summarySql, conn);
-                    cmdSummary.Parameters.AddWithValue("@StartDate", startDate);
-                    cmdSummary.Parameters.AddWithValue("@EndDate", endDate);
-                    SqlDataAdapter summaryAdapter = new SqlDataAdapter(cmdSummary);
-                    summaryAdapter.Fill(ds, "Summary");
+                    if (reader.Read())
+                    {
+                        lblTotalTravelers.Text = reader["TotalTravelers"].ToString();
+                        lblTotalBookings.Text = reader["TotalBookings"].ToString();
 
-                    // 2. Get age distribution data
-                    string ageSql = @"
-                    SELECT 
-                        CASE 
-                            WHEN tr.Age < 18 THEN 'Under 18'
-                            WHEN tr.Age BETWEEN 18 AND 24 THEN '18-24'
-                            WHEN tr.Age BETWEEN 25 AND 34 THEN '25-34'
-                            WHEN tr.Age BETWEEN 35 AND 44 THEN '35-44'
-                            WHEN tr.Age BETWEEN 45 AND 54 THEN '45-54'
-                            WHEN tr.Age BETWEEN 55 AND 64 THEN '55-64'
-                            WHEN tr.Age >= 65 THEN '65+'
-                            ELSE 'Unknown'
-                        END AS AgeGroup,
-                        COUNT(DISTINCT tr.TravelerID) AS TravelerCount
-                    FROM 
-                        TRAVELER tr
-                        JOIN BOOKING b ON tr.TravelerID = b.TravelerID
-                        JOIN TRIP t ON b.TripID = t.TripID
-                    WHERE 
-                        b.Date BETWEEN @StartDate AND @EndDate" + categoryFilter + @"
-                    GROUP BY 
-                        CASE 
-                            WHEN tr.Age < 18 THEN 'Under 18'
-                            WHEN tr.Age BETWEEN 18 AND 24 THEN '18-24'
-                            WHEN tr.Age BETWEEN 25 AND 34 THEN '25-34'
-                            WHEN tr.Age BETWEEN 35 AND 44 THEN '35-44'
-                            WHEN tr.Age BETWEEN 45 AND 54 THEN '45-54'
-                            WHEN tr.Age BETWEEN 55 AND 64 THEN '55-64'
-                            WHEN tr.Age >= 65 THEN '65+'
-                            ELSE 'Unknown'
-                        END
-                    ORDER BY 
-                        CASE 
-                            WHEN CASE 
-                                WHEN tr.Age < 18 THEN 'Under 18'
-                                WHEN tr.Age BETWEEN 18 AND 24 THEN '18-24'
-                                WHEN tr.Age BETWEEN 25 AND 34 THEN '25-34'
-                                WHEN tr.Age BETWEEN 35 AND 44 THEN '35-44'
-                                WHEN tr.Age BETWEEN 45 AND 54 THEN '45-54'
-                                WHEN tr.Age BETWEEN 55 AND 64 THEN '55-64'
-                                WHEN tr.Age >= 65 THEN '65+'
-                                ELSE 'Unknown'
-                            END = 'Under 18' THEN 1
-                            WHEN CASE 
-                                WHEN tr.Age < 18 THEN 'Under 18'
-                                WHEN tr.Age BETWEEN 18 AND 24 THEN '18-24'
-                                WHEN tr.Age BETWEEN 25 AND 34 THEN '25-34'
-                                WHEN tr.Age BETWEEN 35 AND 44 THEN '35-44'
-                                WHEN tr.Age BETWEEN 45 AND 54 THEN '45-54'
-                                WHEN tr.Age BETWEEN 55 AND 64 THEN '55-64'
-                                WHEN tr.Age >= 65 THEN '65+'
-                                ELSE 'Unknown'
-                            END = '18-24' THEN 2
-                            WHEN CASE 
-                                WHEN tr.Age < 18 THEN 'Under 18'
-                                WHEN tr.Age BETWEEN 18 AND 24 THEN '18-24'
-                                WHEN tr.Age BETWEEN 25 AND 34 THEN '25-34'
-                                WHEN tr.Age BETWEEN 35 AND 44 THEN '35-44'
-                                WHEN tr.Age BETWEEN 45 AND 54 THEN '45-54'
-                                WHEN tr.Age BETWEEN 55 AND 64 THEN '55-64'
-                                WHEN tr.Age >= 65 THEN '65+'
-                                ELSE 'Unknown'
-                            END = '25-34' THEN 3
-                            WHEN CASE 
-                                WHEN tr.Age < 18 THEN 'Under 18'
-                                WHEN tr.Age BETWEEN 18 AND 24 THEN '18-24'
-                                WHEN tr.Age BETWEEN 25 AND 34 THEN '25-34'
-                                WHEN tr.Age BETWEEN 35 AND 44 THEN '35-44'
-                                WHEN tr.Age BETWEEN 45 AND 54 THEN '45-54'
-                                WHEN tr.Age BETWEEN 55 AND 64 THEN '55-64'
-                                WHEN tr.Age >= 65 THEN '65+'
-                                ELSE 'Unknown'
-                            END = '35-44' THEN 4
-                            WHEN CASE 
-                                WHEN tr.Age < 18 THEN 'Under 18'
-                                WHEN tr.Age BETWEEN 18 AND 24 THEN '18-24'
-                                WHEN tr.Age BETWEEN 25 AND 34 THEN '25-34'
-                                WHEN tr.Age BETWEEN 35 AND 44 THEN '35-44'
-                                WHEN tr.Age BETWEEN 45 AND 54 THEN '45-54'
-                                WHEN tr.Age BETWEEN 55 AND 64 THEN '55-64'
-                                WHEN tr.Age >= 65 THEN '65+'
-                                ELSE 'Unknown'
-                            END = '45-54' THEN 5
-                            WHEN CASE 
-                                WHEN tr.Age < 18 THEN 'Under 18'
-                                WHEN tr.Age BETWEEN 18 AND 24 THEN '18-24'
-                                WHEN tr.Age BETWEEN 25 AND 34 THEN '25-34'
-                                WHEN tr.Age BETWEEN 35 AND 44 THEN '35-44'
-                                WHEN tr.Age BETWEEN 45 AND 54 THEN '45-54'
-                                WHEN tr.Age BETWEEN 55 AND 64 THEN '55-64'
-                                WHEN tr.Age >= 65 THEN '65+'
-                                ELSE 'Unknown'
-                            END = '55-64' THEN 6
-                            WHEN CASE 
-                                WHEN tr.Age < 18 THEN 'Under 18'
-                                WHEN tr.Age BETWEEN 18 AND 24 THEN '18-24'
-                                WHEN tr.Age BETWEEN 25 AND 34 THEN '25-34'
-                                WHEN tr.Age BETWEEN 35 AND 44 THEN '35-44'
-                                WHEN tr.Age BETWEEN 45 AND 54 THEN '45-54'
-                                WHEN tr.Age BETWEEN 55 AND 64 THEN '55-64'
-                                WHEN tr.Age >= 65 THEN '65+'
-                                ELSE 'Unknown'
-                            END = '65+' THEN 7
-                            ELSE 8
-                        END";
+                        if (reader["AvgSpending"] != DBNull.Value)
+                        {
+                            decimal avgSpending = Convert.ToDecimal(reader["AvgSpending"]);
+                            decimal minSpending = Convert.ToDecimal(reader["MinSpending"]);
+                            decimal maxSpending = Convert.ToDecimal(reader["MaxSpending"]);
 
-                    SqlCommand cmdAge = new SqlCommand(ageSql, conn);
-                    cmdAge.Parameters.AddWithValue("@StartDate", startDate);
-                    cmdAge.Parameters.AddWithValue("@EndDate", endDate);
-                    SqlDataAdapter ageAdapter = new SqlDataAdapter(cmdAge);
-                    ageAdapter.Fill(ds, "AgeDistribution");
-
-                    // 3. Get nationality distribution data (top 5)
-                    string nationalitySql = @"
-                    SELECT TOP 5
-                        tr.Nationality,
-                        COUNT(DISTINCT tr.TravelerID) AS TravelerCount
-                    FROM 
-                        TRAVELER tr
-                        JOIN BOOKING b ON tr.TravelerID = b.TravelerID
-                        JOIN TRIP t ON b.TripID = t.TripID
-                    WHERE 
-                        b.Date BETWEEN @StartDate AND @EndDate" + categoryFilter + @"
-                    GROUP BY 
-                        tr.Nationality
-                    ORDER BY 
-                        COUNT(DISTINCT tr.TravelerID) DESC";
-
-                    SqlCommand cmdNationality = new SqlCommand(nationalitySql, conn);
-                    cmdNationality.Parameters.AddWithValue("@StartDate", startDate);
-                    cmdNationality.Parameters.AddWithValue("@EndDate", endDate);
-                    SqlDataAdapter nationalityAdapter = new SqlDataAdapter(cmdNationality);
-                    nationalityAdapter.Fill(ds, "Nationalities");
-
-                    // 4. Get trip type preferences
-                    string tripTypesSql = @"
-                    SELECT 
-                        tc.Name AS CategoryName,
-                        COUNT(b.BookingID) AS BookingCount
-                    FROM 
-                        BOOKING b
-                        JOIN TRIP t ON b.TripID = t.TripID
-                        JOIN TRIP_CATEGORY tc ON t.CategoryID = tc.CategoryID
-                        JOIN TRAVELER tr ON b.TravelerID = tr.TravelerID
-                    WHERE 
-                        b.Date BETWEEN @StartDate AND @EndDate" + categoryFilter + @"
-                    GROUP BY 
-                        tc.Name
-                    ORDER BY 
-                        COUNT(b.BookingID) DESC";
-
-                    SqlCommand cmdTripTypes = new SqlCommand(tripTypesSql, conn);
-                    cmdTripTypes.Parameters.AddWithValue("@StartDate", startDate);
-                    cmdTripTypes.Parameters.AddWithValue("@EndDate", endDate);
-                    SqlDataAdapter tripTypesAdapter = new SqlDataAdapter(cmdTripTypes);
-                    tripTypesAdapter.Fill(ds, "TripTypes");
-
-                    // 5. Get popular destinations
-                    string destinationsSql = @"
-                    SELECT TOP 8
-                        d.Name AS DestinationName,
-                        COUNT(b.BookingID) AS BookingCount
-                    FROM 
-                        BOOKING b
-                        JOIN TRIP t ON b.TripID = t.TripID
-                        JOIN DESTINATION d ON t.DestinationID = d.DestinationID
-                    WHERE 
-                        b.Date BETWEEN @StartDate AND @EndDate" + categoryFilter + @"
-                    GROUP BY 
-                        d.Name
-                    ORDER BY 
-                        COUNT(b.BookingID) DESC";
-
-                    SqlCommand cmdDestinations = new SqlCommand(destinationsSql, conn);
-                    cmdDestinations.Parameters.AddWithValue("@StartDate", startDate);
-                    cmdDestinations.Parameters.AddWithValue("@EndDate", endDate);
-                    SqlDataAdapter destinationsAdapter = new SqlDataAdapter(cmdDestinations);
-                    destinationsAdapter.Fill(ds, "Destinations");
-
-                    // 6. Get spending habits by trip type
-                    string spendingSql = @"
-                    SELECT 
-                        tc.Name AS CategoryName,
-                        AVG(b.TotalAmount) AS AverageSpending
-                    FROM 
-                        BOOKING b
-                        JOIN TRIP t ON b.TripID = t.TripID
-                        JOIN TRIP_CATEGORY tc ON t.CategoryID = tc.CategoryID
-                    WHERE 
-                        b.Date BETWEEN @StartDate AND @EndDate" + categoryFilter + @"
-                    GROUP BY 
-                        tc.Name
-                    ORDER BY 
-                        AVG(b.TotalAmount) DESC";
-
-                    SqlCommand cmdSpending = new SqlCommand(spendingSql, conn);
-                    cmdSpending.Parameters.AddWithValue("@StartDate", startDate);
-                    cmdSpending.Parameters.AddWithValue("@EndDate", endDate);
-                    SqlDataAdapter spendingAdapter = new SqlDataAdapter(cmdSpending);
-                    spendingAdapter.Fill(ds, "Spending");
-
-                    // 7. Get traveler details for grid
-                    string travelerDetailsSql = @"
-                    SELECT 
-                        tr.TravelerID,
-                        u.FirstName + ' ' + u.LastName AS FullName,
-                        tr.Age,
-                        tr.Nationality,
-                        tr.PreferredLanguage,
-                        COUNT(b.BookingID) AS TotalBookings,
-                        SUM(b.TotalAmount) AS TotalSpent,
-                        AVG(b.TotalAmount) AS AvgSpent,
-                        MAX(b.Date) AS LastBookingDate,
-                        tr.LoyaltyPoints
-                    FROM 
-                        TRAVELER tr
-                        JOIN USER u ON tr.TravelerID = u.UserID
-                        JOIN BOOKING b ON tr.TravelerID = b.TravelerID
-                        JOIN TRIP t ON b.TripID = t.TripID
-                    WHERE 
-                        b.Date BETWEEN @StartDate AND @EndDate" + categoryFilter + @"
-                    GROUP BY 
-                        tr.TravelerID, u.FirstName, u.LastName, tr.Age, tr.Nationality, tr.PreferredLanguage, tr.LoyaltyPoints
-                    ORDER BY 
-                        SUM(b.TotalAmount) DESC";
-
-                    SqlCommand cmdTravelerDetails = new SqlCommand(travelerDetailsSql, conn);
-                    cmdTravelerDetails.Parameters.AddWithValue("@StartDate", startDate);
-                    cmdTravelerDetails.Parameters.AddWithValue("@EndDate", endDate);
-                    SqlDataAdapter travelerDetailsAdapter = new SqlDataAdapter(cmdTravelerDetails);
-                    travelerDetailsAdapter.Fill(ds, "TravelerDetails");
+                            lblAvgSpending.Text = avgSpending.ToString("C2");
+                            lblSpendingRange.Text = $"{minSpending.ToString("C2")} - {maxSpending.ToString("C2")}";
+                        }
+                        else
+                        {
+                            lblAvgSpending.Text = "$0.00";
+                            lblSpendingRange.Text = "$0.00 - $0.00";
+                        }
+                    }
+                    else
+                    {
+                        // No data found
+                        lblTotalTravelers.Text = "0";
+                        lblTotalBookings.Text = "0";
+                        lblAvgSpending.Text = "$0.00";
+                        lblSpendingRange.Text = "$0.00 - $0.00";
+                    }
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Database error: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-
-            return ds;
-        }
-
-        private void UpdateSummaryMetrics(DataTable summaryTable)
-        {
-            if (summaryTable != null && summaryTable.Rows.Count > 0)
-            {
-                DataRow row = summaryTable.Rows[0];
-
-                lblTotalTravelers.Text = row["TotalTravelers"].ToString();
-                lblTotalBookings.Text = row["TotalBookings"].ToString();
-
-                decimal avgSpending = row["AvgSpending"] != DBNull.Value ? Convert.ToDecimal(row["AvgSpending"]) : 0;
-                decimal maxSpending = row["MaxSpending"] != DBNull.Value ? Convert.ToDecimal(row["MaxSpending"]) : 0;
-                decimal minSpending = row["MinSpending"] != DBNull.Value ? Convert.ToDecimal(row["MinSpending"]) : 0;
-
-                lblAvgSpending.Text = avgSpending.ToString("C2");
-                lblSpendingRange.Text = $"{minSpending.ToString("C2")} - {maxSpending.ToString("C2")}";
-            }
-            else
-            {
-                lblTotalTravelers.Text = "0";
-                lblTotalBookings.Text = "0";
-                lblAvgSpending.Text = "$0.00";
-                lblSpendingRange.Text = "$0.00 - $0.00";
+                MessageBox.Show("Error loading summary statistics: " + ex.Message, "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-        private void UpdateAgeDistributionChart(DataTable ageTable)
+        private void LoadTravelerDetails()
         {
-            chartAgeDistribution.Series[0].Points.Clear();
-
-            if (ageTable != null && ageTable.Rows.Count > 0)
+            try
             {
-                foreach (DataRow row in ageTable.Rows)
+                string filter = GetCategoryFilterClause();
+
+                // Using JOINs with the actual DB structure from the SQL script
+                string query = $@"
+                    SELECT TOP 100
+                        T.TravelerID,
+                        U.FirstName,
+                        U.LastName,
+                        T.Age,
+                        T.Nationality,
+                        U.Email,
+                        COUNT(B.BookingID) AS TotalBookings,
+                        SUM(B.TotalAmount) AS TotalSpending,
+                        AVG(B.TotalAmount) AS AvgSpending
+                    FROM TRAVELER T
+                    JOIN [USER] U ON T.TravelerID = U.UserID
+                    JOIN BOOKING B ON T.TravelerID = B.TravelerID
+                    JOIN TRIP TR ON B.TripID = TR.TripID
+                    WHERE B.Date BETWEEN @StartDate AND @EndDate
+                    {filter}
+                    GROUP BY T.TravelerID, U.FirstName, U.LastName, T.Age, T.Nationality, U.Email
+                    ORDER BY SUM(B.TotalAmount) DESC";
+
+                using (SqlConnection connection = new SqlConnection(connectionString))
                 {
-                    string ageGroup = row["AgeGroup"].ToString();
-                    int count = Convert.ToInt32(row["TravelerCount"]);
-                    chartAgeDistribution.Series[0].Points.AddXY(ageGroup, count);
+                    connection.Open();
+
+                    SqlCommand cmd = new SqlCommand(query, connection);
+                    cmd.Parameters.AddWithValue("@StartDate", dtpStartDate.Value);
+                    cmd.Parameters.AddWithValue("@EndDate", dtpEndDate.Value);
+
+                    SqlDataAdapter adapter = new SqlDataAdapter(cmd);
+                    DataTable travelerData = new DataTable();
+                    adapter.Fill(travelerData);
+
+                    dgvTravelerData.DataSource = travelerData;
+
+                    // Format data grid
+                    if (dgvTravelerData.Columns.Contains("TotalSpending"))
+                        dgvTravelerData.Columns["TotalSpending"].DefaultCellStyle.Format = "C2";
+
+                    if (dgvTravelerData.Columns.Contains("AvgSpending"))
+                        dgvTravelerData.Columns["AvgSpending"].DefaultCellStyle.Format = "C2";
+
+                    if (travelerData.Rows.Count == 0)
+                    {
+                        MessageBox.Show("No traveler booking data found for the selected date range and filters.",
+                            "No Data Found", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error loading traveler details: " + ex.Message, "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        // Include the chart-loading methods from the previous code, but only call them if data exists
+
+        private void LoadDemographics()
+        {
+            try
+            {
+                LoadAgeDistribution();
+                LoadNationalityDistribution();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error loading demographics: " + ex.Message, "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void LoadAgeDistribution()
+        {
+            string filter = GetCategoryFilterClause();
+
+            string query = $@"
+                SELECT 
+                    CASE 
+                        WHEN T.Age BETWEEN 18 AND 24 THEN '18-24'
+                        WHEN T.Age BETWEEN 25 AND 34 THEN '25-34'
+                        WHEN T.Age BETWEEN 35 AND 44 THEN '35-44'
+                        WHEN T.Age BETWEEN 45 AND 54 THEN '45-54'
+                        WHEN T.Age BETWEEN 55 AND 64 THEN '55-64'
+                        WHEN T.Age >= 65 THEN '65+'
+                        ELSE 'Unknown'
+                    END AS AgeGroup,
+                    COUNT(*) AS Count
+                FROM TRAVELER T
+                JOIN BOOKING B ON T.TravelerID = B.TravelerID
+                JOIN TRIP TR ON B.TripID = TR.TripID
+                WHERE B.Date BETWEEN @StartDate AND @EndDate
+                {filter}
+                GROUP BY 
+                    CASE 
+                        WHEN T.Age BETWEEN 18 AND 24 THEN '18-24'
+                        WHEN T.Age BETWEEN 25 AND 34 THEN '25-34'
+                        WHEN T.Age BETWEEN 35 AND 44 THEN '35-44'
+                        WHEN T.Age BETWEEN 45 AND 54 THEN '45-54'
+                        WHEN T.Age BETWEEN 55 AND 64 THEN '55-64'
+                        WHEN T.Age >= 65 THEN '65+'
+                        ELSE 'Unknown'
+                    END
+                ORDER BY AgeGroup";
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+
+                SqlCommand cmd = new SqlCommand(query, connection);
+                cmd.Parameters.AddWithValue("@StartDate", dtpStartDate.Value);
+                cmd.Parameters.AddWithValue("@EndDate", dtpEndDate.Value);
+
+                SqlDataAdapter adapter = new SqlDataAdapter(cmd);
+                DataTable ageData = new DataTable();
+                adapter.Fill(ageData);
+
+                // Configure age distribution chart
+                chartAgeDistribution.Series.Clear();
+                Series ageSeries = new Series("Age Distribution");
+                ageSeries.ChartType = SeriesChartType.Column;
+
+                foreach (DataRow row in ageData.Rows)
+                {
+                    ageSeries.Points.AddXY(row["AgeGroup"].ToString(), Convert.ToInt32(row["Count"]));
                 }
 
-                // Set Y-axis minimum to zero
-                chartAgeDistribution.ChartAreas[0].AxisY.Minimum = 0;
+                chartAgeDistribution.Series.Add(ageSeries);
 
-                // Format data labels
-                chartAgeDistribution.Series[0].IsValueShownAsLabel = true;
+                // Format chart
+                chartAgeDistribution.ChartAreas[0].AxisX.Title = "Age Group";
+                chartAgeDistribution.ChartAreas[0].AxisY.Title = "Number of Travelers";
+                chartAgeDistribution.ChartAreas[0].AxisY.LabelStyle.Format = "#,##0";
             }
         }
 
-        private void UpdateNationalityChart(DataTable nationalityTable)
+        private void LoadNationalityDistribution()
         {
-            chartNationality.Series[0].Points.Clear();
+            string filter = GetCategoryFilterClause();
 
-            if (nationalityTable != null && nationalityTable.Rows.Count > 0)
+            string query = $@"
+                SELECT TOP 10
+                    T.Nationality,
+                    COUNT(*) AS Count
+                FROM TRAVELER T
+                JOIN BOOKING B ON T.TravelerID = B.TravelerID
+                JOIN TRIP TR ON B.TripID = TR.TripID
+                WHERE B.Date BETWEEN @StartDate AND @EndDate
+                {filter}
+                GROUP BY T.Nationality
+                ORDER BY COUNT(*) DESC";
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
             {
-                foreach (DataRow row in nationalityTable.Rows)
+                connection.Open();
+
+                SqlCommand cmd = new SqlCommand(query, connection);
+                cmd.Parameters.AddWithValue("@StartDate", dtpStartDate.Value);
+                cmd.Parameters.AddWithValue("@EndDate", dtpEndDate.Value);
+
+                SqlDataAdapter adapter = new SqlDataAdapter(cmd);
+                DataTable nationalityData = new DataTable();
+                adapter.Fill(nationalityData);
+
+                // Configure nationality chart
+                chartNationality.Series.Clear();
+                Series nationalitySeries = new Series("Nationality");
+                nationalitySeries.ChartType = SeriesChartType.Pie;
+
+                foreach (DataRow row in nationalityData.Rows)
                 {
+                    int count = Convert.ToInt32(row["Count"]);
                     string nationality = row["Nationality"].ToString();
-                    int count = Convert.ToInt32(row["TravelerCount"]);
-                    int pointIndex = chartNationality.Series[0].Points.AddXY(nationality, count);
-                    chartNationality.Series[0].Points[pointIndex].Label = $"{nationality}: #PERCENT{{P0}}";
+
+                    nationalitySeries.Points.AddXY(nationality, count);
                 }
+
+                chartNationality.Series.Add(nationalitySeries);
+
+                // Format chart
+                chartNationality.Series[0].Label = "#PERCENT{P0}";
+                chartNationality.Series[0].LegendText = "#VALX";
             }
         }
 
-        private void UpdateTripTypesChart(DataTable tripTypesTable)
+        private void LoadPreferences()
         {
-            chartTripTypes.Series[0].Points.Clear();
-
-            if (tripTypesTable != null && tripTypesTable.Rows.Count > 0)
+            try
             {
-                foreach (DataRow row in tripTypesTable.Rows)
-                {
-                    string category = row["CategoryName"].ToString();
-                    int count = Convert.ToInt32(row["BookingCount"]);
-                    int pointIndex = chartTripTypes.Series[0].Points.AddXY(category, count);
-                    chartTripTypes.Series[0].Points[pointIndex].Label = $"{category}: #PERCENT{{P0}}";
-                }
+                LoadTripTypes();
+                LoadTopDestinations();
+                LoadSpendingByTripType();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error loading preferences: " + ex.Message, "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-        private void UpdateDestinationsChart(DataTable destinationsTable)
+        private void LoadTripTypes()
         {
-            chartDestinations.Series[0].Points.Clear();
+            string query = $@"
+                SELECT 
+                    C.Name AS TripType,
+                    COUNT(*) AS Count
+                FROM BOOKING B
+                JOIN TRIP T ON B.TripID = T.TripID
+                JOIN TRIP_CATEGORY C ON T.CategoryID = C.CategoryID
+                WHERE B.Date BETWEEN @StartDate AND @EndDate
+                GROUP BY C.Name
+                ORDER BY COUNT(*) DESC";
 
-            if (destinationsTable != null && destinationsTable.Rows.Count > 0)
+            using (SqlConnection connection = new SqlConnection(connectionString))
             {
-                // Add destinations in reverse order (so highest appears at top in horizontal bar chart)
-                for (int i = destinationsTable.Rows.Count - 1; i >= 0; i--)
+                connection.Open();
+
+                SqlCommand cmd = new SqlCommand(query, connection);
+                cmd.Parameters.AddWithValue("@StartDate", dtpStartDate.Value);
+                cmd.Parameters.AddWithValue("@EndDate", dtpEndDate.Value);
+
+                SqlDataAdapter adapter = new SqlDataAdapter(cmd);
+                DataTable tripTypeData = new DataTable();
+                adapter.Fill(tripTypeData);
+
+                // Configure trip types chart
+                chartTripTypes.Series.Clear();
+                Series tripTypeSeries = new Series("Trip Types");
+                tripTypeSeries.ChartType = SeriesChartType.Doughnut;
+
+                foreach (DataRow row in tripTypeData.Rows)
                 {
-                    DataRow row = destinationsTable.Rows[i];
-                    string destination = row["DestinationName"].ToString();
-                    int count = Convert.ToInt32(row["BookingCount"]);
-                    chartDestinations.Series[0].Points.AddXY(destination, count);
+                    tripTypeSeries.Points.AddXY(row["TripType"].ToString(), Convert.ToInt32(row["Count"]));
                 }
 
-                // Set Y-axis minimum to zero
-                chartDestinations.ChartAreas[0].AxisY.Minimum = 0;
+                chartTripTypes.Series.Add(tripTypeSeries);
 
-                // Format data labels
-                chartDestinations.Series[0].IsValueShownAsLabel = true;
+                // Format chart
+                chartTripTypes.Series[0].Label = "#PERCENT{P0}";
+                chartTripTypes.Series[0].LegendText = "#VALX";
             }
         }
 
-        private void UpdateSpendingChart(DataTable spendingTable)
+        private void LoadTopDestinations()
         {
-            chartSpending.Series[0].Points.Clear();
+            string filter = GetCategoryFilterClause();
 
-            if (spendingTable != null && spendingTable.Rows.Count > 0)
+            string query = $@"
+                SELECT TOP 10
+                    D.Name AS Destination,
+                    COUNT(*) AS Count
+                FROM BOOKING B
+                JOIN TRIP T ON B.TripID = T.TripID
+                JOIN DESTINATION D ON T.DestinationID = D.DestinationID
+                WHERE B.Date BETWEEN @StartDate AND @EndDate
+                {filter}
+                GROUP BY D.Name
+                ORDER BY COUNT(*) DESC";
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
             {
-                foreach (DataRow row in spendingTable.Rows)
+                connection.Open();
+
+                SqlCommand cmd = new SqlCommand(query, connection);
+                cmd.Parameters.AddWithValue("@StartDate", dtpStartDate.Value);
+                cmd.Parameters.AddWithValue("@EndDate", dtpEndDate.Value);
+
+                SqlDataAdapter adapter = new SqlDataAdapter(cmd);
+                DataTable destinationData = new DataTable();
+                adapter.Fill(destinationData);
+
+                // Configure destinations chart
+                chartDestinations.Series.Clear();
+                Series destinationSeries = new Series("Destinations");
+                destinationSeries.ChartType = SeriesChartType.Bar;
+
+                foreach (DataRow row in destinationData.Rows)
                 {
-                    string category = row["CategoryName"].ToString();
-                    decimal avgSpending = Convert.ToDecimal(row["AverageSpending"]);
-                    chartSpending.Series[0].Points.AddXY(category, (double)avgSpending);
+                    destinationSeries.Points.AddXY(row["Destination"].ToString(), Convert.ToInt32(row["Count"]));
                 }
 
-                // Set Y-axis minimum to zero
-                chartSpending.ChartAreas[0].AxisY.Minimum = 0;
+                chartDestinations.Series.Add(destinationSeries);
+
+                // Format chart
+                chartDestinations.ChartAreas[0].AxisX.Title = "Destination";
+                chartDestinations.ChartAreas[0].AxisY.Title = "Number of Bookings";
+                chartDestinations.ChartAreas[0].AxisY.LabelStyle.Format = "#,##0";
+                chartDestinations.ChartAreas[0].AxisX.Interval = 1;
             }
+        }
+
+        private void LoadSpendingByTripType()
+        {
+            string query = $@"
+                SELECT 
+                    C.Name AS TripType,
+                    AVG(B.TotalAmount) AS AvgSpending
+                FROM BOOKING B
+                JOIN TRIP T ON B.TripID = T.TripID
+                JOIN TRIP_CATEGORY C ON T.CategoryID = C.CategoryID
+                WHERE B.Date BETWEEN @StartDate AND @EndDate
+                GROUP BY C.Name
+                ORDER BY AVG(B.TotalAmount) DESC";
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+
+                SqlCommand cmd = new SqlCommand(query, connection);
+                cmd.Parameters.AddWithValue("@StartDate", dtpStartDate.Value);
+                cmd.Parameters.AddWithValue("@EndDate", dtpEndDate.Value);
+
+                SqlDataAdapter adapter = new SqlDataAdapter(cmd);
+                DataTable spendingData = new DataTable();
+                adapter.Fill(spendingData);
+
+                // Configure spending chart
+                chartSpending.Series.Clear();
+                Series spendingSeries = new Series("Average Spending");
+                spendingSeries.ChartType = SeriesChartType.Column;
+
+                foreach (DataRow row in spendingData.Rows)
+                {
+                    spendingSeries.Points.AddXY(row["TripType"].ToString(), Convert.ToDecimal(row["AvgSpending"]));
+                }
+
+                chartSpending.Series.Add(spendingSeries);
+
+                // Format chart
+                chartSpending.ChartAreas[0].AxisX.Title = "Trip Type";
+                chartSpending.ChartAreas[0].AxisY.Title = "Average Spending ($)";
+                chartSpending.ChartAreas[0].AxisY.LabelStyle.Format = "C0";
+                chartSpending.Series[0].IsValueShownAsLabel = true;
+                chartSpending.Series[0].LabelFormat = "C0";
+            }
+        }
+
+        private string GetCategoryFilterClause()
+        {
+            // Get selected category ID from combo box
+            if (cboCategoryFilter.SelectedValue != null)
+            {
+                // Try to safely convert the value
+                try
+                {
+                    int categoryId = Convert.ToInt32(cboCategoryFilter.SelectedValue);
+
+                    if (categoryId > 0)
+                        return $"AND TR.CategoryID = {categoryId}";
+                }
+                catch
+                {
+                    // If conversion fails, just return empty string (no filter)
+                }
+            }
+
+            return string.Empty;
         }
 
         private void btnExportPDF_Click(object sender, EventArgs e)
         {
-            try
-            {
-                // Setup save dialog
-                SaveFileDialog saveDialog = new SaveFileDialog();
-                saveDialog.Filter = "PDF File|*.pdf";
-                saveDialog.Title = "Save Report as PDF";
-                saveDialog.FileName = "TravelerDemographics_" + DateTime.Now.ToString("yyyyMMdd");
-
-                if (saveDialog.ShowDialog() == DialogResult.OK)
-                {
-                    lblStatus.Text = "Exporting to PDF...";
-                    this.Cursor = Cursors.WaitCursor;
-                    Application.DoEvents();
-
-                    // Note: In a real implementation, you would use a PDF library like iTextSharp or PDFsharp
-                    MessageBox.Show("To implement actual PDF export functionality, you need to add a " +
-                                    "PDF library like iTextSharp or PDFsharp to your project.",
-                                    "PDF Export", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-                    lblStatus.Text = "Report exported successfully";
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Error exporting report: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                lblStatus.Text = "Error exporting report";
-            }
-            finally
-            {
-                this.Cursor = Cursors.Default;
-            }
+            MessageBox.Show("Export to PDF functionality is not implemented in this diagnostic version.",
+                "Not Implemented", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void btnExportExcel_Click(object sender, EventArgs e)
         {
-            try
-            {
-                // Setup save dialog
-                SaveFileDialog saveDialog = new SaveFileDialog();
-                saveDialog.Filter = "Excel File|*.xlsx";
-                saveDialog.Title = "Save Report as Excel";
-                saveDialog.FileName = "TravelerDemographics_" + DateTime.Now.ToString("yyyyMMdd");
-
-                if (saveDialog.ShowDialog() == DialogResult.OK)
-                {
-                    lblStatus.Text = "Exporting to Excel...";
-                    this.Cursor = Cursors.WaitCursor;
-                    Application.DoEvents();
-
-                    // Note: In a real implementation, you would use a library like EPPlus, NPOI, or ClosedXML
-                    MessageBox.Show("To implement proper Excel export functionality, you need to add an " +
-                                    "Excel library like EPPlus, NPOI, or ClosedXML to your project.",
-                                    "Excel Export", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-                    // For simplicity, export the grid data to CSV
-                    ExportToCSV(saveDialog.FileName.Replace(".xlsx", ".csv"));
-
-                    lblStatus.Text = "Report exported successfully";
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Error exporting report: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                lblStatus.Text = "Error exporting report";
-            }
-            finally
-            {
-                this.Cursor = Cursors.Default;
-            }
-        }
-
-        private void ExportToCSV(string fileName)
-        {
-            // Simple CSV export of the grid data
-            using (System.IO.StreamWriter sw = new System.IO.StreamWriter(fileName))
-            {
-                // Write headers
-                for (int i = 0; i < dgvTravelerData.Columns.Count; i++)
-                {
-                    sw.Write(dgvTravelerData.Columns[i].HeaderText);
-                    if (i < dgvTravelerData.Columns.Count - 1)
-                    {
-                        sw.Write(",");
-                    }
-                }
-                sw.WriteLine();
-
-                // Write data
-                foreach (DataGridViewRow row in dgvTravelerData.Rows)
-                {
-                    if (!row.IsNewRow)
-                    {
-                        for (int i = 0; i < dgvTravelerData.Columns.Count; i++)
-                        {
-                            if (row.Cells[i].Value != null)
-                            {
-                                sw.Write(row.Cells[i].Value.ToString().Replace(",", ";"));
-                            }
-                            if (i < dgvTravelerData.Columns.Count - 1)
-                            {
-                                sw.Write(",");
-                            }
-                        }
-                        sw.WriteLine();
-                    }
-                }
-            }
+            MessageBox.Show("Export to Excel functionality is not implemented in this diagnostic version.",
+                "Not Implemented", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
     }
 }

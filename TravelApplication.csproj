@@ -239,7 +239,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AbandonedBookingAnalysisReport.cs" />
+    <Compile Include="AbandonedBookingAnalysisReport.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="AddServices.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -253,6 +255,7 @@
     <Compile Include="BookingDetailsForm.Designer.cs">
       <DependentUpon>BookingDetailsForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="BookingManagementForm.cs" />
     <Compile Include="BookingManagementService.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -307,7 +310,9 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="OperatorManagementForm.Designer.cs" />
-    <Compile Include="PaymentTransactionFraudReport.cs" />
+    <Compile Include="PaymentTransactionFraudReport.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="PerformanceAnalyticsForm.cs" />
     <Compile Include="PerformanceAnalyticsForm.Designer.cs" />
     <Compile Include="PerformanceReport.cs">
@@ -356,6 +361,9 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="TourCategoriesManagementForm.Designer.cs" />
+    <Compile Include="TourOperatoPerformanceReport.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="TransportPerformanceReportForm.cs">
       <SubType>Form</SubType>
     </Compile>

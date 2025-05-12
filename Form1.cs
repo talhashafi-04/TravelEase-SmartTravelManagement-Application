@@ -1,16 +1,15 @@
 ﻿using System;
 using System.Data;
-using System.Data.SqlClient;
 using System.Drawing;
 using System.Windows.Forms;
-
+using Microsoft.Data.SqlClient; // Ensure you're using Microsoft.Data.SqlClient consistently
 
 namespace DatabaseProject
 {
     public partial class Form1 : Form
     {
         private string _operatorId;
-        private SqlConnection con = new SqlConnection(@"Data Source=TALHA-SHAFI\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;Encrypt=False;Trusted_Connection=True");
+        private SqlConnection con;
 
         // Dashboard controls
         private Label lblActiveTrips;
@@ -25,6 +24,7 @@ namespace DatabaseProject
         public Form1(string operatorId)
         {
             _operatorId = operatorId;
+            con = new SqlConnection(@"Data Source=TALHA-SHAFI\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;Encrypt=False;");
             InitializeComponents();
         }
 
@@ -96,7 +96,8 @@ namespace DatabaseProject
                     "SELECT COUNT(*) FROM TRIP WHERE Status='Active' AND OperatorID=@OpID", con))
                 {
                     cmd.Parameters.AddWithValue("@OpID", _operatorId);
-                    lblActiveTrips.Text = "Active Trips: " + cmd.ExecuteScalar();
+                    int activeTrips = Convert.ToInt32(cmd.ExecuteScalar());
+                    lblActiveTrips.Text = "Active Trips: " + activeTrips;
                 }
 
                 // Total Bookings
@@ -107,17 +108,18 @@ namespace DatabaseProject
                        WHERE t.OperatorID = @OpID", con))
                 {
                     cmd.Parameters.AddWithValue("@OpID", _operatorId);
-                    lblTotalBookings.Text = "Total Bookings: " + cmd.ExecuteScalar();
+                    int totalBookings = Convert.ToInt32(cmd.ExecuteScalar());
+                    lblTotalBookings.Text = "Total Bookings: " + totalBookings;
                 }
 
-                // Corrected Revenue Query
+                // Revenue Query
                 using (var cmd = new SqlCommand(
                     @"SELECT ISNULL(SUM(p.Amount),0)
-        FROM PAYMENT p
-        JOIN BOOKING b ON p.BookingID = b.BookingID
-        JOIN TRIP t ON b.TripID = t.TripID
-       WHERE t.OperatorID = @OpID
-         AND p.Status = 'Completed'", con))
+                        FROM PAYMENT p
+                        JOIN BOOKING b ON p.BookingID = b.BookingID
+                        JOIN TRIP t ON b.TripID = t.TripID
+                       WHERE t.OperatorID = @OpID
+                         AND p.Status = 'Completed'", con))
                 {
                     cmd.Parameters.AddWithValue("@OpID", _operatorId);
                     decimal rev = Convert.ToDecimal(cmd.ExecuteScalar());
@@ -131,7 +133,8 @@ namespace DatabaseProject
             }
             finally
             {
-                con.Close();
+                if (con.State == ConnectionState.Open)
+                    con.Close();
             }
         }
 
@@ -165,8 +168,6 @@ namespace DatabaseProject
                         }
                     }
                 }
-
-                // You could also fetch recent reviews, etc.
             }
             catch (Exception ex)
             {
@@ -175,7 +176,8 @@ namespace DatabaseProject
             }
             finally
             {
-                con.Close();
+                if (con.State == ConnectionState.Open)
+                    con.Close();
             }
         }
 
@@ -190,7 +192,7 @@ namespace DatabaseProject
 
         private void BtnBookingManagement_Click(object sender, EventArgs e)
         {
-            using (var form = new TourBookingManagementForm(_operatorId))
+            using (var form = new BookingManagementForm(_operatorId))
                 form.ShowDialog(this);
 
             RefreshDashboard();
@@ -199,20 +201,22 @@ namespace DatabaseProject
 
         private void BtnAnalytics_Click(object sender, EventArgs e)
         {
-            using (var form = new PerformanceReportsForm(_operatorId))
-                form.ShowDialog(this);
+            MessageBox.Show("Analytics feature coming soon!", "Information",
+                MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-            RefreshDashboard();
-            LoadAlerts();
+            // When implemented:
+            // using (var form = new PerformanceReportsForm(_operatorId))
+            //     form.ShowDialog(this);
         }
 
         private void BtnViewReports_Click(object sender, EventArgs e)
         {
-            using (var form = new ReportsDashboardForm())
-                form.ShowDialog(this);
+            MessageBox.Show("Reports feature coming soon!", "Information",
+                MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-            RefreshDashboard();
-            LoadAlerts();
+            // When implemented:
+            // using (var form = new ReportsDashboardForm(_operatorId))
+            //     form.ShowDialog(this);
         }
     }
 }

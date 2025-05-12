@@ -1,13 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 using System.Data.SqlClient;
+using System.Drawing;
+using System.Windows.Forms;
 
 namespace DatabaseProject
 {
@@ -16,12 +11,9 @@ namespace DatabaseProject
         private DataGridView dgvOperators;
         private TextBox txtSearch;
         private ComboBox cmbStatusFilter;
-        private Button btnFilter;
-        private Button btnApprove;
-        private Button btnReject;
-        private Button btnDetails;
-        SqlConnection con = new SqlConnection(
-    @"Data Source=TALHA-SHAFI\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;Encrypt=False;Trusted_Connection=True");
+        private Button btnFilter, btnApprove, btnReject, btnDetails;
+        private SqlConnection con = new SqlConnection(
+            @"Data Source=TALHA-SHAFI\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;Encrypt=False;Trusted_Connection=True");
 
         public OperatorManagementForm()
         {
@@ -30,16 +22,16 @@ namespace DatabaseProject
 
         private void InitializeComponents()
         {
-            this.Text = "Operator Management";
-            this.ClientSize = new Size(900, 600);
-            this.StartPosition = FormStartPosition.CenterParent;
+            Text = "Operator Management";
+            ClientSize = new Size(900, 600);
+            StartPosition = FormStartPosition.CenterParent;
 
             // Search box
             txtSearch = new TextBox
             {
                 Location = new Point(20, 20),
                 Width = 200,
-                Text = "Search by agency name"
+                Text = string.Empty
             };
 
             // Status filter
@@ -68,65 +60,91 @@ namespace DatabaseProject
                 RowHeadersVisible = false,
                 AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
                 SelectionMode = DataGridViewSelectionMode.FullRowSelect,
-                Font = new Font("Segoe UI", 9)
+                Font = new Font("Segoe UI", 9),
+                AutoGenerateColumns = false
             };
-            dgvOperators.Columns.Add("OperatorID", "Operator ID");
-            dgvOperators.Columns.Add("AgencyName", "Agency");
-            dgvOperators.Columns.Add("Status", "Status");
-            dgvOperators.Columns.Add("Rating", "Rating");
-            dgvOperators.Columns.Add("EstablishedDate", "Established");
 
-            // Add controls
-            this.Controls.AddRange(new Control[]
+            // Define bound columns
+            dgvOperators.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "OperatorID",
+                HeaderText = "Operator ID",
+                DataPropertyName = "OperatorID"
+            });
+            dgvOperators.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "AgencyName",
+                HeaderText = "Agency",
+                DataPropertyName = "AgencyName"
+            });
+            dgvOperators.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "Status",
+                HeaderText = "Status",
+                DataPropertyName = "Status"
+            });
+            dgvOperators.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "Rating",
+                HeaderText = "Rating",
+                DataPropertyName = "Rating"
+            });
+            dgvOperators.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "EstablishedDate",
+                HeaderText = "Established",
+                DataPropertyName = "EstablishedDate"
+            });
+
+            Controls.AddRange(new Control[]
             {
                 txtSearch, cmbStatusFilter,
                 btnFilter, btnApprove, btnReject, btnDetails,
                 dgvOperators
             });
 
-            // Event wiring
-            this.Load += (s, e) => LoadOperators();
+            // Events
+            Load += (s, e) => LoadOperators();
             btnFilter.Click += (s, e) => LoadOperators();
             btnApprove.Click += BtnApprove_Click;
             btnReject.Click += BtnReject_Click;
             btnDetails.Click += BtnDetails_Click;
         }
+
         private void LoadOperators()
         {
-            string search = txtSearch.Text.Trim();
+            string search = string.IsNullOrWhiteSpace(txtSearch.Text) ? null : txtSearch.Text.Trim();
             string status = cmbStatusFilter.SelectedIndex > 0
                 ? cmbStatusFilter.SelectedItem.ToString()
                 : null;
 
             var dt = new DataTable();
-            SqlCommand cmd = null;
-            SqlDataAdapter da = null;
+            const string sql = @"
+SELECT 
+  o.OperatorID,
+  o.AgencyName,
+  u.Status,
+  o.Rating,
+  o.EstablishedDate
+FROM TOUR_OPERATOR o
+JOIN [USER] u ON o.OperatorID = u.UserID
+WHERE (@search IS NULL OR o.AgencyName LIKE '%' + @search + '%')
+  AND (@status IS NULL OR u.Status = @status)
+ORDER BY o.AgencyName";
 
             try
             {
                 con.Open();
+                using (var cmd = new SqlCommand(sql, con))
+                {
+                    cmd.Parameters.AddWithValue("@search", (object)search ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@status", (object)status ?? DBNull.Value);
 
-                // Parameterized query:
-                string sql = @"
-            SELECT 
-              OperatorID,
-              AgencyName,
-              Status,
-              Rating,
-              EstablishedDate
-            FROM TOUR_OPERATOR
-            WHERE (@search IS NULL OR AgencyName LIKE '%' + @search + '%')
-              AND (@status IS NULL OR Status = @status)
-            ORDER BY AgencyName";
-
-                cmd = new SqlCommand(sql, con);
-                // If empty, pass DBNull so the filter is ignored
-                cmd.Parameters.AddWithValue("@search", string.IsNullOrEmpty(search) ? (object)DBNull.Value : search);
-                cmd.Parameters.AddWithValue("@status", string.IsNullOrEmpty(status) ? (object)DBNull.Value : status);
-
-                da = new SqlDataAdapter(cmd);
-                da.Fill(dt);
-
+                    using (var da = new SqlDataAdapter(cmd))
+                    {
+                        da.Fill(dt);
+                    }
+                }
                 dgvOperators.DataSource = dt;
             }
             catch (Exception ex)
@@ -136,11 +154,10 @@ namespace DatabaseProject
             }
             finally
             {
-                da?.Dispose();
-                cmd?.Dispose();
                 con.Close();
             }
         }
+
         private void BtnApprove_Click(object sender, EventArgs e)
         {
             if (dgvOperators.CurrentRow == null)
@@ -150,12 +167,11 @@ namespace DatabaseProject
             }
 
             string opId = dgvOperators.CurrentRow.Cells["OperatorID"].Value.ToString();
-
             try
             {
                 con.Open();
                 using (var cmd = new SqlCommand(
-                    "UPDATE TOUR_OPERATOR SET Status = 'Approved' WHERE OperatorID = @OpID", con))
+                    "UPDATE [USER] SET Status = 'Approved' WHERE UserID = @OpID", con))
                 {
                     cmd.Parameters.AddWithValue("@OpID", opId);
                     cmd.ExecuteNonQuery();
@@ -183,12 +199,11 @@ namespace DatabaseProject
             }
 
             string opId = dgvOperators.CurrentRow.Cells["OperatorID"].Value.ToString();
-
             try
             {
                 con.Open();
                 using (var cmd = new SqlCommand(
-                    "UPDATE TOUR_OPERATOR SET Status = 'Rejected' WHERE OperatorID = @OpID", con))
+                    "UPDATE [USER] SET Status = 'Rejected' WHERE UserID = @OpID", con))
                 {
                     cmd.Parameters.AddWithValue("@OpID", opId);
                     cmd.ExecuteNonQuery();
@@ -212,10 +227,10 @@ namespace DatabaseProject
             if (dgvOperators.CurrentRow == null) return;
             string opId = dgvOperators.CurrentRow.Cells["OperatorID"].Value.ToString();
             using (var detailsForm = new OperatorDetailsForm(opId))
+            {
                 detailsForm.ShowDialog(this);
-
+            }
             LoadOperators();
         }
-
     }
 }

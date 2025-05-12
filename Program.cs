@@ -29,7 +29,10 @@ namespace TravelApplication
             // Application.Run(new TravelEase.TravelerDemographicsForm());
             
             // Default application run
-            Application.Run(new Form1("TO017"));
+            //Application.Run(new AdminDashboardForm("A001"));
+            //Application.Run(new TravelerDashboard("T001"));
+            Application.Run(new Form1("SP001"));
+
         }
     }
 }
