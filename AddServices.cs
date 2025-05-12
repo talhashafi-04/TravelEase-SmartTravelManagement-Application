@@ -8,7 +8,8 @@ namespace Service_Provider_Section
 {
     public partial class AddServices : Form
     {
-        private readonly string connectionString = @"Data Source=LIVERPOOL\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;Encrypt=True;Trust Server Certificate=True";
+        private string connectionString = @"Data Source=TALHA-SHAFI\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;";
+
         private readonly string providerId;
 
         private ComboBox cmbServiceType;

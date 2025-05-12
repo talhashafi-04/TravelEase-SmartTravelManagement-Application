@@ -25,7 +25,7 @@ namespace DatabaseProject
         private CheckedListBox clbServices;
         private PictureBox pbImage;
         private Button btnBrowseImage, btnSave, btnCancel;
-        SqlConnection con = new SqlConnection("Data Source=Shehryar\\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;Trust Server Certificate=True");
+        SqlConnection con = new SqlConnection(@"Data Source=TALHA-SHAFI\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;");
 
         public EditTripForm(int tripId)
         {

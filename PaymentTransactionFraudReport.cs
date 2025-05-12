@@ -15,7 +15,7 @@ namespace DatabaseProject
         private Button btnGenerateReport;
         private Button btnExportCsv;
         private readonly SqlConnection con = new SqlConnection(
-            "Data Source=Shehryar\\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;Trust Server Certificate=True");
+            @"Data Source=TALHA-SHAFI\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;");
 
         // DataTables to hold report data
         private DataTable dtSuccessFailure;

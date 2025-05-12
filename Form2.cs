@@ -17,7 +17,7 @@ namespace DatabaseProject
         private Button btnResourceCoordination;  // NEW
         private readonly string _operatorId;
 
-        private readonly SqlConnection con = new SqlConnection("Data Source=TALHA-SHAFI\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;");
+        private readonly SqlConnection con = new SqlConnection(@"Data Source=TALHA-SHAFI\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;");
 
         public Form2(string operatorId)
         {

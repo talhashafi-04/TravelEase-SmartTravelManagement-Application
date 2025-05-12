@@ -13,7 +13,7 @@ namespace DatabaseProject
         private Chart chartAbandonment, chartReasons, chartRecovery, chartLossTrend;
         private Button btnGenerate, btnExportCsv;
         private SqlConnection con = new SqlConnection(
-            "Data Source=Shehryar\\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;Trust Server Certificate=True");
+            @"Data Source=TALHA-SHAFI\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;");
 
         // DataTables for CSV export
         private DataTable dtAbandonment, dtReasons, dtRecovery, dtLossTrend;
