@@ -262,7 +262,7 @@ namespace TravelEase
 
         private void BtnBookings_Click(object sender, EventArgs e)
         {
-            BookingsForm bookingsForm = new BookingsForm(travelerId);
+            TravelerBookingsForm bookingsForm = new TravelerBookingsForm(travelerId);
             bookingsForm.ShowDialog();
 
             // Refresh data after bookings may have been updated

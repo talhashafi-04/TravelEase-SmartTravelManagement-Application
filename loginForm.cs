@@ -4,6 +4,8 @@ using System.Data.SqlClient;
 using System.Drawing;
 using System.Windows.Forms;
 using DatabaseProject;
+using Service_Provider_Section;
+
 
 namespace TravelEase
 {
@@ -73,18 +75,18 @@ namespace TravelEase
                                 TravelerDashboard travelerForm = new TravelerDashboard(userID);
                                 travelerForm.Show();
                                 break;
-                            //case "ServiceProvider":
-                            //    ServiceProviderDashboard providerForm = new ServiceProviderDashboard(userID);
-                            //    providerForm.Show();
-                            //    break;
-                            //case "TourOperator":
-                            //    Form1 operatorForm = new Form1();
-                            //    operatorForm.Show();
-                            //    break;
-                            //case "Admin":
-                            //    AdminDashboardForm adminForm = new AdminDashboardForm();
-                            //    adminForm.Show();
-                            //    break;
+                            case "ServiceProvider":
+                                ServiceProviderDashboard providerForm = new ServiceProviderDashboard(userID);
+                                providerForm.Show();
+                                break;
+                            case "TourOperator":
+                                Form1 operatorForm = new Form1(userID);
+                                operatorForm.Show();
+                                break;
+                            case "Admin":
+                                AdminDashboardForm adminForm = new AdminDashboardForm(userID);
+                                adminForm.Show();
+                                break;
                             default:
                                 MessageBox.Show("Unknown user role.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                                 return;

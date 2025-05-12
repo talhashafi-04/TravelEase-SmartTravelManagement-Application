@@ -319,7 +319,7 @@ namespace TravelEase
         {
             if (selectedTripId > 0)
             {
-                BookingsForm bookingForm = new BookingsForm(travelerId, selectedTripId);
+                TravelerBookingsForm bookingForm = new TravelerBookingsForm(travelerId, selectedTripId);
                 if (bookingForm.ShowDialog() == DialogResult.OK)
                 {
                     // Remove from wishlist after successful booking

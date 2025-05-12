@@ -6,19 +6,19 @@ using System.Windows.Forms;
 
 namespace TravelEase
 {
-    public partial class BookingsForm : Form
+    public partial class TravelerBookingsForm : Form
     {
         private string connectionString = @"Data Source=TALHA-SHAFI\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;";
         private string travelerId;
 
-        public BookingsForm(string travelerId)
+        public TravelerBookingsForm(string travelerId)
         {
             InitializeComponent();
             this.travelerId = travelerId;
             LoadBookings();
             SetupForm();
         }
-        public BookingsForm(string travelerId, int tripIdToSelect)
+        public TravelerBookingsForm(string travelerId, int tripIdToSelect)
         {
             InitializeComponent();
             this.travelerId = travelerId;

@@ -15,6 +15,11 @@ namespace TravelEase
 {
     public partial class TripDetailsForm : Form
     {
+        private string destinationName;
+        private string destinationCountry;
+        private double? locationLatitude;
+        private double? locationLongitude;
+
         private string connectionString = @"Data Source=TALHA-SHAFI\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;";
         private int tripId;
         private int bookingId;
@@ -52,10 +57,10 @@ namespace TravelEase
         private void AdjustPanelSizes()
         {
             // Set the header panel height
-            panelHeader.Height = 600; // Adjust as needed
+           // panelHeader.Height = 500; // Adjust as needed
 
             // Calculate and set the main panel height
-            int mainPanelHeight = 400; // Adjust as needed
+            int mainPanelHeight = 500; // Adjust as needed
             panelMain.Height = mainPanelHeight;
 
             // Ensure button panel is at the bottom and visible
@@ -75,7 +80,7 @@ namespace TravelEase
             // Set the form size but allow it to be resizable
             this.Size = new Size(1200, 800); // Adjust height to screen size
             this.MaximumSize = new Size(0, 0);
-           // this.WindowState = FormWindowState.Maximized; // Or use Normal with proper size
+            // this.WindowState = FormWindowState.Maximized; // Or use Normal with proper size
 
             // Setup image gallery controls
             SetupImageGallery();
@@ -355,12 +360,19 @@ namespace TravelEase
                             string destinationCountry = reader["Country"]?.ToString();
                             string destinationClimate = reader["Climate"]?.ToString();
 
+
+                            this.destinationCountry = destinationCountry;
+                            this.destinationName = destinationName;
+
+
                             string destinationdescription = reader["DestinationDescription"]?.ToString();
 
-                            string searchQuery = $"{destinationName} {destinationRegiom} {destinationCountry} {destinationClimate}";
-                            string alternateSearchQuery = $"{destinationdescription}";
+                            string specificQuery = $"{reader["Title"]?.ToString()} {destinationName} {destinationRegiom} {destinationCountry} {destinationClimate}";
+
+                            string genericQuery = BuildOptimizedImageQuery(reader["Title"]?.ToString(), destinationName, destinationRegiom, destinationCountry, destinationClimate, reader["Difficulty"]?.ToString(), reader["CategoryName"]?.ToString(), destinationdescription );
+                            
                             // Load multiple images for gallery
-                            await LoadTripImageGallery(reader["DestinationID"]?.ToString(), searchQuery, alternateSearchQuery);
+                            await LoadTripImageGallery(reader["DestinationID"]?.ToString(), specificQuery, genericQuery);
                         }
                     }
                 }
@@ -369,6 +381,137 @@ namespace TravelEase
             {
                 MessageBox.Show("Error loading trip details: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+        // Construct an optimized search query using trip, destination, and category information
+        string BuildOptimizedImageQuery(string title, string destinationName, string region, string country,
+                                       string climate, string categoryName, string difficulty, string description)
+        {
+            // Base destination query components
+            string baseQuery = $"{destinationName} {country}";
+
+            // Add scene-setting keywords based on region and climate
+            string sceneElements = string.Empty;
+            if (!string.IsNullOrEmpty(climate))
+            {
+                // Same climate switch case as before
+            }
+
+            // Add activity-based keywords from category and difficulty
+            string activityElements = string.Empty;
+            if (!string.IsNullOrEmpty(categoryName))
+            {
+                // Same category switch case as before
+            }
+
+            // Extract key landmarks or features from description
+            List<string> descriptionKeywords = new List<string>();
+            if (!string.IsNullOrEmpty(description))
+            {
+                // List of landmark words to look for in description
+                string[] landmarkTerms = new string[]
+                {
+            "peak", "mountain", "lake", "river", "waterfall", "glacier", "fort",
+            "mosque", "temple", "shrine", "museum", "monument", "beach", "desert",
+            "valley", "plateau", "forest", "village", "ruins", "ancient", "historic"
+                };
+
+                // Get the first 2-3 sentences only
+                string shortDesc = description;
+                int endOfThirdSentence = -1;
+                int count = 0;
+                for (int i = 0; i < description.Length; i++)
+                {
+                    if (description[i] == '.' || description[i] == '!' || description[i] == '?')
+                    {
+                        count++;
+                        if (count == 3)
+                        {
+                            endOfThirdSentence = i + 1;
+                            break;
+                        }
+                    }
+                }
+
+                if (endOfThirdSentence > 0)
+                {
+                    shortDesc = description.Substring(0, endOfThirdSentence);
+                }
+
+                // Find landmark terms in the shortened description
+                foreach (string term in landmarkTerms)
+                {
+                    if (shortDesc.IndexOf(term, StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        // Find the word and any associated adjectives (1-2 words before)
+                        int index = shortDesc.IndexOf(term, StringComparison.OrdinalIgnoreCase);
+                        int startIndex = index;
+
+                        // Look back for up to two words
+                        int wordCount = 0;
+                        for (int i = index - 1; i >= 0 && wordCount < 2; i--)
+                        {
+                            if (i == 0 || char.IsWhiteSpace(shortDesc[i - 1]))
+                            {
+                                if (char.IsLetter(shortDesc[i]))
+                                {
+                                    startIndex = i;
+                                    wordCount++;
+                                }
+                            }
+                        }
+
+                        // Find the end of the current word
+                        int endIndex = index + term.Length;
+                        while (endIndex < shortDesc.Length && !char.IsWhiteSpace(shortDesc[endIndex]))
+                        {
+                            endIndex++;
+                        }
+
+                        // Extract the term with context
+                        string termWithContext = shortDesc.Substring(startIndex, endIndex - startIndex);
+                        descriptionKeywords.Add(termWithContext);
+
+                        // Limit to 3 keywords from description
+                        if (descriptionKeywords.Count >= 3)
+                            break;
+                    }
+                }
+            }
+
+            // Build the optimized search query with most important elements first
+            List<string> queryComponents = new List<string>();
+
+            // Add destination name and country (most important)
+            queryComponents.Add(baseQuery);
+
+            // Add landmark keywords from description (if found)
+            if (descriptionKeywords.Count > 0)
+            {
+                queryComponents.Add(string.Join(" ", descriptionKeywords));
+            }
+
+            // Add scene elements next
+            if (!string.IsNullOrEmpty(sceneElements))
+            {
+                queryComponents.Add(sceneElements);
+            }
+
+            // Add activity elements last
+            if (!string.IsNullOrEmpty(activityElements))
+            {
+                queryComponents.Add(activityElements);
+            }
+
+            // Combine the components but limit length (Pixabay suggests shorter queries work better)
+            string combinedQuery = string.Join(" ", queryComponents);
+
+            // Limit query length - Pixabay queries have a 100 character limit
+            if (combinedQuery.Length > 80)
+            {
+                combinedQuery = combinedQuery.Substring(0, 80);
+            }
+
+            return combinedQuery;
         }
 
         private async Task LoadTripImageGallery(string did, string searchQuery, string alternateSQ)
@@ -380,6 +523,8 @@ namespace TravelEase
 
                 // Show loading indicator
                 pbTripImage.Image = CreateLoadingImage();
+                //galleryImages.Add(Image.FromFile(  await imageService.GetImageFromApi(searchQuery));
+
 
                 if (string.IsNullOrEmpty(searchQuery))
                     return;
@@ -514,6 +659,7 @@ namespace TravelEase
                 ShowCurrentImage();
             }
         }
+
 
         private void SlideTimer_Tick(object sender, EventArgs e)
         {
@@ -800,7 +946,7 @@ namespace TravelEase
 
         private void btnBook_Click(object sender, EventArgs e)
         {
-            BookingsForm bookingForm = new BookingsForm(travelerId, tripId);
+            TravelerBookingsForm bookingForm = new TravelerBookingsForm(travelerId, tripId);
             if (bookingForm.ShowDialog() == DialogResult.OK)
             {
                 MessageBox.Show("Trip booked successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -882,6 +1028,31 @@ namespace TravelEase
         {
             this.Close();
         }
+
+        private void TripDetailsForm_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void pbTripImage_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void btnShowMap_Click(object sender, EventArgs e)
+        {
+            if (!string.IsNullOrEmpty(destinationName))
+            {
+                string mapLocation = $"{destinationName}, {destinationCountry}";
+                GoogleMapsForm mapForm = new GoogleMapsForm(mapLocation, locationLatitude, locationLongitude);
+                mapForm.Show();
+            }
+            else
+            {
+                MessageBox.Show("Location information is not available.", "Map Error",
+                MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
     }
 
     // Enhanced Image Service Class with multiple image support
@@ -962,8 +1133,7 @@ namespace TravelEase
                 string searchQuery = sq;
 
                 // Construct Pixabay API URL
-                string apiUrl = $"https://pixabay.com/api/?key={apiKey}&q={Uri.EscapeDataString(searchQuery)}&image_type=photo&orientation=horizontal&per_page={count}&safesearch=true";
-
+                 string apiUrl = $"https://pixabay.com/api/?key={apiKey}&q={Uri.EscapeDataString(searchQuery)}&image_type=photo&orientation=horizontal&per_page={count}&safesearch=true&min_width=1920&min_height=1080";
                 HttpResponseMessage response = await httpClient.GetAsync(apiUrl);
 
                 if (response.IsSuccessStatusCode)
@@ -975,7 +1145,7 @@ namespace TravelEase
                     {
                         for (int i = 0; i < data.hits.Count; i++)
                         {
-                            string imageUrl = data.hits[i].webformatURL.ToString();
+                            string imageUrl = data.hits[i].largeImageURL.ToString();
                             string fileName = $"{sq.ToLower()}_{i}.jpg";
 
                             // Check if already cached

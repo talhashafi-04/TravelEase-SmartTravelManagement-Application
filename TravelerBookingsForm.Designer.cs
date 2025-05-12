@@ -1,6 +1,6 @@
 ﻿namespace TravelEase
 {
-    partial class BookingsForm
+    partial class TravelerBookingsForm
     {
         /// <summary>
         /// Required designer variable.

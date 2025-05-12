@@ -7,18 +7,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Data.SqlClient;
 
 namespace DatabaseProject
 {
-    public partial class ReviewDetailsForm : Form
+    public partial class TravelerReviewDetailsForm : Form
     {
         private readonly int _reviewId;
         private TextBox txtRating, txtComment, txtResponse, txtStatus, txtTraveler;
         private Button btnSaveResponse;
-        SqlConnection con = new SqlConnection(
-           "Data Source=Shehryar\\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;TrustServerCertificate=True");
-        public ReviewDetailsForm(int reviewId)
+
+        public TravelerReviewDetailsForm(int reviewId)
         {
             _reviewId = reviewId;
             InitializeComponents();
@@ -77,44 +75,13 @@ namespace DatabaseProject
 
         private void LoadReviewDetails()
         {
-            const string sql = @"
-        SELECT 
-            TravelerID,
-            Rating,
-            Comment,
-            ApprovalStatus,
-            ResponseText
-        FROM REVIEW
-        WHERE ReviewID = @ReviewID";
-
-            try
-            {
-                con.Open();
-                using (var cmd = new SqlCommand(sql, con))
-                {
-                    cmd.Parameters.AddWithValue("@ReviewID", _reviewId);
-                    using (var rd = cmd.ExecuteReader())
-                    {
-                        if (rd.Read())
-                        {
-                            txtTraveler.Text = rd["TravelerID"].ToString();
-                            txtRating.Text = rd["Rating"].ToString();
-                            txtComment.Text = rd["Comment"].ToString();
-                            txtStatus.Text = rd["ApprovalStatus"].ToString();
-                            txtResponse.Text = rd["ResponseText"] is DBNull ? "" : rd["ResponseText"].ToString();
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Error loading review details: " + ex.Message,
-                                "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            finally
-            {
-                con.Close();
-            }
+            // TODO: Fetch full review by _reviewId from DB
+            // Example stub:
+            txtTraveler.Text = "TR1022";
+            txtRating.Text = "2.5";
+            txtStatus.Text = "Pending";
+            txtComment.Text = "Not a great experience.";
+            txtResponse.Text = ""; // could be pre-filled if response exists
         }
 
         private void BtnSaveResponse_Click(object sender, EventArgs e)
@@ -122,41 +89,13 @@ namespace DatabaseProject
             string response = txtResponse.Text.Trim();
             if (response.Length == 0)
             {
-                MessageBox.Show("Response cannot be empty.", "Validation",
-                                MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Response cannot be empty.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            const string sql = @"
-        UPDATE REVIEW
-           SET ResponseText   = @Resp,
-               ResponseDate   = GETDATE(),
-               ApprovalStatus = 'Approved'
-         WHERE ReviewID = @ReviewID";
-
-            try
-            {
-                con.Open();
-                using (var cmd = new SqlCommand(sql, con))
-                {
-                    cmd.Parameters.AddWithValue("@Resp", response);
-                    cmd.Parameters.AddWithValue("@ReviewID", _reviewId);
-                    cmd.ExecuteNonQuery();
-                }
-
-                MessageBox.Show("Response saved successfully.", "Success",
-                                MessageBoxButtons.OK, MessageBoxIcon.Information);
-                this.Close();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Error saving response: " + ex.Message,
-                                "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            finally
-            {
-                con.Close();
-            }
+            // TODO: Update review record with response in DB
+            MessageBox.Show("Response saved.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            this.Close();
         }
     }
 }

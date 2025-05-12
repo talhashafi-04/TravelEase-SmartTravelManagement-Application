@@ -1,4 +1,7 @@
-﻿namespace TravelEase
+﻿using System.Drawing;
+using System.Windows.Forms;
+
+namespace TravelEase
 {
     partial class TripDetailsForm
     {
@@ -30,6 +33,8 @@
         {
             this.panelHeader = new System.Windows.Forms.Panel();
             this.btnClose = new System.Windows.Forms.Button();
+            this.btnShowMap = new System.Windows.Forms.Button();
+            this.pbTripImage = new System.Windows.Forms.PictureBox();
             this.panelHeaderContent = new System.Windows.Forms.Panel();
             this.panelRating = new System.Windows.Forms.Panel();
             this.lblTotalReviews = new System.Windows.Forms.Label();
@@ -46,7 +51,6 @@
             this.lblCategory = new System.Windows.Forms.Label();
             this.lblDestination = new System.Windows.Forms.Label();
             this.lblTripTitle = new System.Windows.Forms.Label();
-            this.pbTripImage = new System.Windows.Forms.PictureBox();
             this.panelMain = new System.Windows.Forms.Panel();
             this.tabControl = new System.Windows.Forms.TabControl();
             this.tabOverview = new System.Windows.Forms.TabPage();
@@ -88,10 +92,10 @@
             this.btnAddToWishlist = new System.Windows.Forms.Button();
             this.btnBook = new System.Windows.Forms.Button();
             this.panelHeader.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pbTripImage)).BeginInit();
             this.panelHeaderContent.SuspendLayout();
             this.panelRating.SuspendLayout();
             this.panelPrice.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pbTripImage)).BeginInit();
             this.panelMain.SuspendLayout();
             this.tabControl.SuspendLayout();
             this.tabOverview.SuspendLayout();
@@ -113,11 +117,11 @@
             // 
             this.panelHeader.BackColor = System.Drawing.Color.Transparent;
             this.panelHeader.Controls.Add(this.btnClose);
-            this.panelHeader.Controls.Add(this.panelHeaderContent);
+            this.panelHeader.Controls.Add(this.btnShowMap);
             this.panelHeader.Controls.Add(this.pbTripImage);
-            this.panelHeader.Location = new System.Drawing.Point(0, 0);
+            this.panelHeader.Location = new System.Drawing.Point(0, 1);
             this.panelHeader.Name = "panelHeader";
-            this.panelHeader.Size = new System.Drawing.Size(1600, 600);
+            this.panelHeader.Size = new System.Drawing.Size(1600, 616);
             this.panelHeader.TabIndex = 0;
             // 
             // btnClose
@@ -127,7 +131,7 @@
             this.btnClose.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnClose.Font = new System.Drawing.Font("Verdana", 16F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnClose.ForeColor = System.Drawing.Color.White;
-            this.btnClose.Location = new System.Drawing.Point(1536, 12);
+            this.btnClose.Location = new System.Drawing.Point(1534, 13);
             this.btnClose.Name = "btnClose";
             this.btnClose.Size = new System.Drawing.Size(40, 40);
             this.btnClose.TabIndex = 2;
@@ -135,19 +139,50 @@
             this.btnClose.UseVisualStyleBackColor = true;
             this.btnClose.Click += new System.EventHandler(this.btnClose_Click);
             // 
+            // btnShowMap
+            // 
+            this.btnShowMap.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(23)))), ((int)(((byte)(167)))), ((int)(((byte)(232)))));
+            this.btnShowMap.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnShowMap.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(139)))), ((int)(((byte)(165)))));
+            this.btnShowMap.FlatAppearance.BorderSize = 0;
+            this.btnShowMap.FlatAppearance.MouseDownBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(18)))), ((int)(((byte)(115)))), ((int)(((byte)(198)))));
+            this.btnShowMap.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(191)))), ((int)(((byte)(165)))));
+            this.btnShowMap.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnShowMap.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold);
+            this.btnShowMap.ForeColor = System.Drawing.Color.White;
+            this.btnShowMap.Location = new System.Drawing.Point(1180, 514);
+            this.btnShowMap.Name = "btnShowMap";
+            this.btnShowMap.Size = new System.Drawing.Size(291, 48);
+            this.btnShowMap.TabIndex = 3;
+            this.btnShowMap.Text = "🌎 EXPLORE ON MAP";
+            this.btnShowMap.UseVisualStyleBackColor = false;
+            this.btnShowMap.Click += new System.EventHandler(this.btnShowMap_Click);
+            // 
+            // pbTripImage
+            // 
+            this.pbTripImage.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pbTripImage.Image = global::TravelApplication.Properties.Resources.Borsa1;
+            this.pbTripImage.Location = new System.Drawing.Point(0, 0);
+            this.pbTripImage.Margin = new System.Windows.Forms.Padding(0);
+            this.pbTripImage.Name = "pbTripImage";
+            this.pbTripImage.Size = new System.Drawing.Size(1600, 616);
+            this.pbTripImage.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pbTripImage.TabIndex = 0;
+            this.pbTripImage.TabStop = false;
+            this.pbTripImage.Click += new System.EventHandler(this.pbTripImage_Click);
+            // 
             // panelHeaderContent
             // 
-            this.panelHeaderContent.BackColor = System.Drawing.Color.Transparent;
+            this.panelHeaderContent.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(41)))), ((int)(((byte)(128)))), ((int)(((byte)(185)))));
             this.panelHeaderContent.Controls.Add(this.panelRating);
             this.panelHeaderContent.Controls.Add(this.panelPrice);
             this.panelHeaderContent.Controls.Add(this.lblCategory);
             this.panelHeaderContent.Controls.Add(this.lblDestination);
             this.panelHeaderContent.Controls.Add(this.lblTripTitle);
-            this.panelHeaderContent.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.panelHeaderContent.Location = new System.Drawing.Point(0, 418);
+            this.panelHeaderContent.Location = new System.Drawing.Point(0, 610);
             this.panelHeaderContent.Name = "panelHeaderContent";
-            this.panelHeaderContent.Padding = new System.Windows.Forms.Padding(40);
-            this.panelHeaderContent.Size = new System.Drawing.Size(1600, 182);
+            this.panelHeaderContent.Padding = new System.Windows.Forms.Padding(20);
+            this.panelHeaderContent.Size = new System.Drawing.Size(1600, 188);
             this.panelHeaderContent.TabIndex = 1;
             // 
             // panelRating
@@ -248,7 +283,7 @@
             this.panelPrice.Controls.Add(this.lblPriceSubtext);
             this.panelPrice.Controls.Add(this.lblPrice);
             this.panelPrice.Controls.Add(this.lblPriceTitle);
-            this.panelPrice.Location = new System.Drawing.Point(1120, 27);
+            this.panelPrice.Location = new System.Drawing.Point(1215, 38);
             this.panelPrice.Name = "panelPrice";
             this.panelPrice.Size = new System.Drawing.Size(304, 102);
             this.panelPrice.TabIndex = 3;
@@ -322,23 +357,13 @@
             this.lblTripTitle.TabIndex = 0;
             this.lblTripTitle.Text = "Trip Title";
             // 
-            // pbTripImage
-            // 
-            this.pbTripImage.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pbTripImage.Image = global::TravelApplication.Properties.Resources.Borsa1;
-            this.pbTripImage.Location = new System.Drawing.Point(0, 0);
-            this.pbTripImage.Name = "pbTripImage";
-            this.pbTripImage.Size = new System.Drawing.Size(1600, 600);
-            this.pbTripImage.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.pbTripImage.TabIndex = 0;
-            this.pbTripImage.TabStop = false;
-            // 
             // panelMain
             // 
             this.panelMain.Controls.Add(this.tabControl);
-            this.panelMain.Location = new System.Drawing.Point(0, 773);
+            this.panelMain.Location = new System.Drawing.Point(137, 804);
+            this.panelMain.Margin = new System.Windows.Forms.Padding(3, 3, 3, 30);
             this.panelMain.Name = "panelMain";
-            this.panelMain.Padding = new System.Windows.Forms.Padding(20);
+            this.panelMain.Padding = new System.Windows.Forms.Padding(40, 20, 20, 20);
             this.panelMain.Size = new System.Drawing.Size(1334, 517);
             this.panelMain.TabIndex = 1;
             // 
@@ -350,10 +375,10 @@
             this.tabControl.Controls.Add(this.tabReviews);
             this.tabControl.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabControl.Font = new System.Drawing.Font("Century Gothic", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tabControl.Location = new System.Drawing.Point(20, 20);
+            this.tabControl.Location = new System.Drawing.Point(40, 20);
             this.tabControl.Name = "tabControl";
             this.tabControl.SelectedIndex = 0;
-            this.tabControl.Size = new System.Drawing.Size(1294, 477);
+            this.tabControl.Size = new System.Drawing.Size(1274, 477);
             this.tabControl.TabIndex = 0;
             // 
             // tabOverview
@@ -362,7 +387,7 @@
             this.tabOverview.Location = new System.Drawing.Point(4, 30);
             this.tabOverview.Name = "tabOverview";
             this.tabOverview.Padding = new System.Windows.Forms.Padding(10);
-            this.tabOverview.Size = new System.Drawing.Size(1286, 443);
+            this.tabOverview.Size = new System.Drawing.Size(1266, 443);
             this.tabOverview.TabIndex = 0;
             this.tabOverview.Text = "Overview";
             this.tabOverview.UseVisualStyleBackColor = true;
@@ -375,7 +400,7 @@
             this.panelOverview.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panelOverview.Location = new System.Drawing.Point(10, 10);
             this.panelOverview.Name = "panelOverview";
-            this.panelOverview.Size = new System.Drawing.Size(1266, 423);
+            this.panelOverview.Size = new System.Drawing.Size(1246, 423);
             this.panelOverview.TabIndex = 0;
             // 
             // gbTripInfo
@@ -391,9 +416,9 @@
             this.gbTripInfo.Controls.Add(this.lblDuration);
             this.gbTripInfo.Controls.Add(this.lblDurationTitle);
             this.gbTripInfo.Font = new System.Drawing.Font("Century Gothic", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.gbTripInfo.Location = new System.Drawing.Point(20, 202);
+            this.gbTripInfo.Location = new System.Drawing.Point(54, 202);
             this.gbTripInfo.Name = "gbTripInfo";
-            this.gbTripInfo.Size = new System.Drawing.Size(1090, 109);
+            this.gbTripInfo.Size = new System.Drawing.Size(1131, 109);
             this.gbTripInfo.TabIndex = 1;
             this.gbTripInfo.TabStop = false;
             this.gbTripInfo.Text = "Trip Information";
@@ -503,9 +528,9 @@
             // 
             this.gbDescription.Controls.Add(this.txtDescription);
             this.gbDescription.Font = new System.Drawing.Font("Century Gothic", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.gbDescription.Location = new System.Drawing.Point(20, 20);
+            this.gbDescription.Location = new System.Drawing.Point(54, 20);
             this.gbDescription.Name = "gbDescription";
-            this.gbDescription.Size = new System.Drawing.Size(1090, 176);
+            this.gbDescription.Size = new System.Drawing.Size(1131, 176);
             this.gbDescription.TabIndex = 0;
             this.gbDescription.TabStop = false;
             this.gbDescription.Text = "Trip Description";
@@ -529,7 +554,7 @@
             this.tabDestination.Location = new System.Drawing.Point(4, 30);
             this.tabDestination.Name = "tabDestination";
             this.tabDestination.Padding = new System.Windows.Forms.Padding(10);
-            this.tabDestination.Size = new System.Drawing.Size(1286, 366);
+            this.tabDestination.Size = new System.Drawing.Size(1266, 443);
             this.tabDestination.TabIndex = 1;
             this.tabDestination.Text = "Destination";
             this.tabDestination.UseVisualStyleBackColor = true;
@@ -542,7 +567,7 @@
             this.panelDestination.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panelDestination.Location = new System.Drawing.Point(10, 10);
             this.panelDestination.Name = "panelDestination";
-            this.panelDestination.Size = new System.Drawing.Size(1266, 346);
+            this.panelDestination.Size = new System.Drawing.Size(1246, 423);
             this.panelDestination.TabIndex = 0;
             // 
             // gbDestinationInfo
@@ -558,9 +583,9 @@
             this.gbDestinationInfo.Controls.Add(this.lblRegion);
             this.gbDestinationInfo.Controls.Add(this.lblRegionTitle);
             this.gbDestinationInfo.Font = new System.Drawing.Font("Century Gothic", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.gbDestinationInfo.Location = new System.Drawing.Point(20, 270);
+            this.gbDestinationInfo.Location = new System.Drawing.Point(52, 254);
             this.gbDestinationInfo.Name = "gbDestinationInfo";
-            this.gbDestinationInfo.Size = new System.Drawing.Size(1090, 150);
+            this.gbDestinationInfo.Size = new System.Drawing.Size(1143, 150);
             this.gbDestinationInfo.TabIndex = 1;
             this.gbDestinationInfo.TabStop = false;
             this.gbDestinationInfo.Text = "Destination Information";
@@ -669,9 +694,9 @@
             // 
             this.gbDestinationDescription.Controls.Add(this.txtDestinationDescription);
             this.gbDestinationDescription.Font = new System.Drawing.Font("Century Gothic", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.gbDestinationDescription.Location = new System.Drawing.Point(20, 20);
+            this.gbDestinationDescription.Location = new System.Drawing.Point(52, 12);
             this.gbDestinationDescription.Name = "gbDestinationDescription";
-            this.gbDestinationDescription.Size = new System.Drawing.Size(1090, 240);
+            this.gbDestinationDescription.Size = new System.Drawing.Size(1143, 224);
             this.gbDestinationDescription.TabIndex = 0;
             this.gbDestinationDescription.TabStop = false;
             this.gbDestinationDescription.Text = "About the Destination";
@@ -686,7 +711,7 @@
             this.txtDestinationDescription.Name = "txtDestinationDescription";
             this.txtDestinationDescription.ReadOnly = true;
             this.txtDestinationDescription.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtDestinationDescription.Size = new System.Drawing.Size(1050, 190);
+            this.txtDestinationDescription.Size = new System.Drawing.Size(1103, 163);
             this.txtDestinationDescription.TabIndex = 0;
             // 
             // tabServices
@@ -695,7 +720,7 @@
             this.tabServices.Location = new System.Drawing.Point(4, 30);
             this.tabServices.Name = "tabServices";
             this.tabServices.Padding = new System.Windows.Forms.Padding(10);
-            this.tabServices.Size = new System.Drawing.Size(1286, 366);
+            this.tabServices.Size = new System.Drawing.Size(1266, 443);
             this.tabServices.TabIndex = 2;
             this.tabServices.Text = "Included Services";
             this.tabServices.UseVisualStyleBackColor = true;
@@ -713,7 +738,7 @@
             this.dgvServices.ReadOnly = true;
             this.dgvServices.RowHeadersWidth = 51;
             this.dgvServices.RowTemplate.Height = 35;
-            this.dgvServices.Size = new System.Drawing.Size(1266, 346);
+            this.dgvServices.Size = new System.Drawing.Size(1246, 423);
             this.dgvServices.TabIndex = 0;
             // 
             // tabReviews
@@ -722,7 +747,7 @@
             this.tabReviews.Location = new System.Drawing.Point(4, 30);
             this.tabReviews.Name = "tabReviews";
             this.tabReviews.Padding = new System.Windows.Forms.Padding(10);
-            this.tabReviews.Size = new System.Drawing.Size(1286, 366);
+            this.tabReviews.Size = new System.Drawing.Size(1266, 443);
             this.tabReviews.TabIndex = 3;
             this.tabReviews.Text = "Reviews";
             this.tabReviews.UseVisualStyleBackColor = true;
@@ -740,7 +765,7 @@
             this.dgvReviews.ReadOnly = true;
             this.dgvReviews.RowHeadersWidth = 51;
             this.dgvReviews.RowTemplate.Height = 40;
-            this.dgvReviews.Size = new System.Drawing.Size(1266, 346);
+            this.dgvReviews.Size = new System.Drawing.Size(1246, 423);
             this.dgvReviews.TabIndex = 0;
             // 
             // panelButtons
@@ -749,11 +774,11 @@
             this.panelButtons.Controls.Add(this.btnWriteReview);
             this.panelButtons.Controls.Add(this.btnAddToWishlist);
             this.panelButtons.Controls.Add(this.btnBook);
-            this.panelButtons.Location = new System.Drawing.Point(0, 426);
+            this.panelButtons.Location = new System.Drawing.Point(0, 512);
             this.panelButtons.Name = "panelButtons";
             this.panelButtons.Padding = new System.Windows.Forms.Padding(20);
             this.panelButtons.Size = new System.Drawing.Size(1334, 142);
-            this.panelButtons.TabIndex = 3;
+            this.panelButtons.TabIndex = 4;
             // 
             // btnWriteReview
             // 
@@ -762,9 +787,9 @@
             this.btnWriteReview.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnWriteReview.Font = new System.Drawing.Font("Century Gothic", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnWriteReview.ForeColor = System.Drawing.Color.White;
-            this.btnWriteReview.Location = new System.Drawing.Point(537, 13);
+            this.btnWriteReview.Location = new System.Drawing.Point(690, 13);
             this.btnWriteReview.Name = "btnWriteReview";
-            this.btnWriteReview.Size = new System.Drawing.Size(213, 74);
+            this.btnWriteReview.Size = new System.Drawing.Size(220, 75);
             this.btnWriteReview.TabIndex = 2;
             this.btnWriteReview.Text = "Write Review";
             this.btnWriteReview.UseVisualStyleBackColor = false;
@@ -777,9 +802,9 @@
             this.btnAddToWishlist.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnAddToWishlist.Font = new System.Drawing.Font("Century Gothic", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnAddToWishlist.ForeColor = System.Drawing.Color.White;
-            this.btnAddToWishlist.Location = new System.Drawing.Point(234, 12);
+            this.btnAddToWishlist.Location = new System.Drawing.Point(400, 12);
             this.btnAddToWishlist.Name = "btnAddToWishlist";
-            this.btnAddToWishlist.Size = new System.Drawing.Size(223, 74);
+            this.btnAddToWishlist.Size = new System.Drawing.Size(220, 75);
             this.btnAddToWishlist.TabIndex = 1;
             this.btnAddToWishlist.Text = "Add to Wishlist";
             this.btnAddToWishlist.UseVisualStyleBackColor = false;
@@ -791,9 +816,9 @@
             this.btnBook.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnBook.Font = new System.Drawing.Font("Century Gothic", 14F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnBook.ForeColor = System.Drawing.Color.White;
-            this.btnBook.Location = new System.Drawing.Point(838, 11);
+            this.btnBook.Location = new System.Drawing.Point(980, 11);
             this.btnBook.Name = "btnBook";
-            this.btnBook.Size = new System.Drawing.Size(239, 70);
+            this.btnBook.Size = new System.Drawing.Size(220, 75);
             this.btnBook.TabIndex = 0;
             this.btnBook.Text = "Book This Trip";
             this.btnBook.UseVisualStyleBackColor = false;
@@ -803,22 +828,24 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoScroll = true;
-            this.ClientSize = new System.Drawing.Size(1355, 1016);
-            this.Controls.Add(this.panelMain);
+            this.ClientSize = new System.Drawing.Size(1376, 1037);
+            this.Controls.Add(this.panelHeaderContent);
             this.Controls.Add(this.panelHeader);
+            this.Controls.Add(this.panelMain);
             this.Controls.Add(this.panelButtons);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Name = "TripDetailsForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Trip Details";
+            this.Load += new System.EventHandler(this.TripDetailsForm_Load);
             this.panelHeader.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.pbTripImage)).EndInit();
             this.panelHeaderContent.ResumeLayout(false);
             this.panelHeaderContent.PerformLayout();
             this.panelRating.ResumeLayout(false);
             this.panelRating.PerformLayout();
             this.panelPrice.ResumeLayout(false);
             this.panelPrice.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pbTripImage)).EndInit();
             this.panelMain.ResumeLayout(false);
             this.tabControl.ResumeLayout(false);
             this.tabOverview.ResumeLayout(false);
@@ -843,6 +870,9 @@
         }
 
         #endregion
+
+
+        private System.Windows.Forms.Button btnShowMap;
 
         private System.Windows.Forms.Panel panelHeader;
         private System.Windows.Forms.PictureBox pbTripImage;
@@ -899,10 +929,11 @@
         private System.Windows.Forms.Label lblBestTime;
         private System.Windows.Forms.DataGridView dgvServices;
         private System.Windows.Forms.DataGridView dgvReviews;
-        private System.Windows.Forms.Panel panelButtons;
-        private System.Windows.Forms.Button btnWriteReview;
-        private System.Windows.Forms.Button btnAddToWishlist;
-        private System.Windows.Forms.Button btnBook;
+        private Panel panelButtons;
+        private Button btnWriteReview;
+        private Button btnAddToWishlist;
+        private Button btnBook;
     }
 }
-
+
+

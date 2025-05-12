@@ -735,6 +735,7 @@
             // 
             // panelPayment
             // 
+            this.panelPayment = new System.Windows.Forms.Panel();
             this.panelPayment.BackColor = System.Drawing.Color.White;
             this.panelPayment.Controls.Add(this.lblFailureReason);
             this.panelPayment.Controls.Add(this.lblFailureReasonTitle);
