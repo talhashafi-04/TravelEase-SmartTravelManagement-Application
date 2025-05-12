@@ -20,7 +20,7 @@ namespace DatabaseProject
         private DateTimePicker dtpFrom, dtpTo;
         private ComboBox cmbTripFilter;
         private Button btnFilter, btnDetails;
-        SqlConnection con = new SqlConnection(@"Data Source=TALHA-SHAFI\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;");
+        SqlConnection con = new SqlConnection(@"Data Source=TALHA-SHAFI\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;Encrypt=False;");
 
 
         private readonly string _operatorId;

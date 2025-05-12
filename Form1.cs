@@ -9,9 +9,8 @@ namespace DatabaseProject
 {
     public partial class Form1 : Form
     {
-        private readonly string _operatorId;
-        private readonly SqlConnection con = new SqlConnection(
-            "Data Source=Shehryar\\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;TrustServerCertificate=True");
+        private string _operatorId;
+        private SqlConnection con = new SqlConnection(@"Data Source=TALHA-SHAFI\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;Encrypt=False;Trusted_Connection=True");
 
         // Dashboard controls
         private Label lblActiveTrips;
@@ -20,6 +19,7 @@ namespace DatabaseProject
         private Button btnTripManagement;
         private Button btnBookingManagement;
         private Button btnAnalytics;
+        private Button btnViewReports;
         private DataGridView dgvAlerts;
 
         public Form1(string operatorId)
@@ -46,6 +46,7 @@ namespace DatabaseProject
             btnTripManagement = new Button { Text = "Trip Management", Location = new Point(20, 120), Size = new Size(150, 35) };
             btnBookingManagement = new Button { Text = "Booking Management", Location = new Point(190, 120), Size = new Size(150, 35) };
             btnAnalytics = new Button { Text = "Analytics", Location = new Point(360, 120), Size = new Size(150, 35) };
+            btnViewReports = new Button { Text = "View Reports", Location = new Point(530, 120), Size = new Size(150, 35) };
 
             // Alerts DataGridView
             dgvAlerts = new DataGridView
@@ -66,7 +67,7 @@ namespace DatabaseProject
             this.Controls.AddRange(new Control[]
             {
                 lblActiveTrips, lblTotalBookings, lblRevenue,
-                btnTripManagement, btnBookingManagement, btnAnalytics,
+                btnTripManagement, btnBookingManagement, btnAnalytics, btnViewReports,
                 dgvAlerts
             });
 
@@ -75,6 +76,7 @@ namespace DatabaseProject
             btnTripManagement.Click += BtnTripManagement_Click;
             btnBookingManagement.Click += BtnBookingManagement_Click;
             btnAnalytics.Click += BtnAnalytics_Click;
+            btnViewReports.Click += BtnViewReports_Click;
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -108,15 +110,15 @@ namespace DatabaseProject
                     lblTotalBookings.Text = "Total Bookings: " + cmd.ExecuteScalar();
                 }
 
-                // Total Revenue
+                // Corrected Revenue Query
                 using (var cmd = new SqlCommand(
-                    @"SELECT ISNULL(SUM(p.Payment_value),0)
-                        FROM olist_order_payments_dataset p
-                        JOIN BOOKING b ON p.Order_ID = b.BookingID
-                        JOIN TRIP t ON b.TripID = t.TripID
-                       WHERE t.OperatorID = @OpID", con))
+                    @"SELECT ISNULL(SUM(p.Amount),0)
+        FROM PAYMENT p
+        JOIN BOOKING b ON p.BookingID = b.BookingID
+        JOIN TRIP t ON b.TripID = t.TripID
+       WHERE t.OperatorID = @OpID
+         AND p.Status = 'Completed'", con))
                 {
-                    // Adjust table/column names if needed
                     cmd.Parameters.AddWithValue("@OpID", _operatorId);
                     decimal rev = Convert.ToDecimal(cmd.ExecuteScalar());
                     lblRevenue.Text = "Revenue: $" + rev.ToString("N2");
@@ -198,6 +200,15 @@ namespace DatabaseProject
         private void BtnAnalytics_Click(object sender, EventArgs e)
         {
             using (var form = new PerformanceReportsForm(_operatorId))
+                form.ShowDialog(this);
+
+            RefreshDashboard();
+            LoadAlerts();
+        }
+
+        private void BtnViewReports_Click(object sender, EventArgs e)
+        {
+            using (var form = new ReportsDashboardForm())
                 form.ShowDialog(this);
 
             RefreshDashboard();

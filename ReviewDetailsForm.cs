@@ -17,7 +17,7 @@ namespace DatabaseProject
         private TextBox txtRating, txtComment, txtResponse, txtStatus, txtTraveler;
         private Button btnSaveResponse;
         SqlConnection con = new SqlConnection(
-           "Data Source=Shehryar\\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;TrustServerCertificate=True");
+           @"Data Source=TALHA-SHAFI\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;Encrypt=False;Trusted_Connection=True");
         public ReviewDetailsForm(int reviewId)
         {
             _reviewId = reviewId;

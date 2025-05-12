@@ -7,7 +7,7 @@ namespace Service_Provider_Section
 {
     public partial class EditServices : Form
     {
-        private string connectionString = @"Data Source=TALHA-SHAFI\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;";
+        private string connectionString = @"Data Source=TALHA-SHAFI\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;Encrypt=False;";
         private string serviceProviderID;
 
         private Label lblServiceID;

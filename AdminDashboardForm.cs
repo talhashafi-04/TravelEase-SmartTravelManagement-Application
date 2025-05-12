@@ -12,7 +12,7 @@ namespace DatabaseProject
 
         // Database connection
         private readonly SqlConnection con = new SqlConnection(
-            "Data Source=Shehryar\\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;TrustServerCertificate=True");
+            @"Data Source=TALHA-SHAFI\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;Encrypt=False;Trusted_Connection=True");
 
         // Welcome label
         private Label lblWelcome;

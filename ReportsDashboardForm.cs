@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
+using TripBookingReportApp;
+using TravelAnalyticsApp;
 
 namespace DatabaseProject
 {
@@ -10,6 +12,8 @@ namespace DatabaseProject
         private Button btnAbandonedBooking;
         private Button btnPlatformGrowth;
         private Button btnPaymentFraud;
+        private Button btnTravelerDemographics;
+        private Button btnTripBookingRevenue;
 
         public ReportsDashboardForm()
         {
@@ -19,7 +23,7 @@ namespace DatabaseProject
         private void InitializeComponents()
         {
             this.Text = "Reports Dashboard";
-            this.ClientSize = new Size(400, 350);
+            this.ClientSize = new Size(400, 470); // Increased height to accommodate new buttons
             this.StartPosition = FormStartPosition.CenterParent;
 
             // Destination Popularity Report
@@ -44,8 +48,8 @@ namespace DatabaseProject
             };
             btnAbandonedBooking.Click += (s, e) =>
             {
-                using (var form = new AbandonedBookingReportForm())
-                    form.ShowDialog(this);
+                //using (var form = new AbandonedBookingReportForm())
+                   // form.ShowDialog(this);
             };
 
             // Platform Growth Report
@@ -70,7 +74,33 @@ namespace DatabaseProject
             };
             btnPaymentFraud.Click += (s, e) =>
             {
-                using (var form = new PaymentFraudReportForm())
+                //using (var form = new PaymentFraudReportForm())
+                  //  form.ShowDialog(this);
+            };
+
+            // Traveler Demographics and Preferences Report
+            btnTravelerDemographics = new Button
+            {
+                Text = "Traveler Demographics and Preferences",
+                Location = new Point(50, 290),
+                Size = new Size(300, 40)
+            };
+            btnTravelerDemographics.Click += (s, e) =>
+            {
+                using (var form = new TravelerDemographicsForm())
+                    form.ShowDialog(this);
+            };
+
+            // Trip Booking and Revenue Report
+            btnTripBookingRevenue = new Button
+            {
+                Text = "Trip Booking and Revenue",
+                Location = new Point(50, 350),
+                Size = new Size(300, 40)
+            };
+            btnTripBookingRevenue.Click += (s, e) =>
+            {
+                using (var form = new TripBookingReportForm())
                     form.ShowDialog(this);
             };
 
@@ -80,7 +110,9 @@ namespace DatabaseProject
                 btnDestinationPopularity,
                 btnAbandonedBooking,
                 btnPlatformGrowth,
-                btnPaymentFraud
+                btnPaymentFraud,
+                btnTravelerDemographics,
+                btnTripBookingRevenue
             });
         }
     }

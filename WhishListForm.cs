@@ -8,7 +8,7 @@ namespace TravelEase
 {
     public partial class WishlistForm : Form
     {
-        private string connectionString = @"Data Source=TALHA-SHAFI\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;";
+        private string connectionString = @"Data Source=TALHA-SHAFI\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;Encrypt=False;";
         private string travelerId;
         private int selectedTripId = 0;
         private bool sortByPrice = false;

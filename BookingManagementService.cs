@@ -21,7 +21,7 @@ namespace Service_Provider_Section
         private readonly string serviceProviderID;
 
         // Connection string
-        private string connectionString = @"Data Source=TALHA-SHAFI\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;";
+        private string connectionString = @"Data Source=TALHA-SHAFI\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;Encrypt=False;";
 
         public Booking_Management(string serviceProviderID)
         {

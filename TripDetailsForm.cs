@@ -20,7 +20,7 @@ namespace TravelEase
         private double? locationLatitude;
         private double? locationLongitude;
 
-        private string connectionString = @"Data Source=TALHA-SHAFI\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;";
+        private string connectionString = @"Data Source=TALHA-SHAFI\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;Encrypt=False;";
         private int tripId;
         private int bookingId;
         private string travelerId;

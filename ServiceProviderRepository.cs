@@ -9,7 +9,7 @@ namespace DatabaseProject
 {
     public partial class ServiceProviderRepository : Form
     {
-        private static string connectionString = @"Data Source=TALHA-SHAFI\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;"; // Made static
+        private static string connectionString = @"Data Source=TALHA-SHAFI\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;Encrypt=False;"; // Made static
 
         public ServiceProviderRepository()
         {

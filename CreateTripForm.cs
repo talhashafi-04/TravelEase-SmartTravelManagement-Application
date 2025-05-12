@@ -24,7 +24,7 @@ namespace DatabaseProject
         private CheckedListBox clbServices;
         private PictureBox pbImage;
         private Button btnBrowseImage, btnSave, btnCancel;
-        SqlConnection con = new SqlConnection(@"Data Source=TALHA-SHAFI\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;");
+        SqlConnection con = new SqlConnection(@"Data Source=TALHA-SHAFI\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;Encrypt=False;");
         public CreateTripForm()
         {
             InitializeComponents();
@@ -170,7 +170,7 @@ namespace DatabaseProject
                                     .ToList();
 
             // 3) Insert into DB
-            var connStr = @"Data Source=TALHA-SHAFI\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;";
+            var connStr = @"Data Source=TALHA-SHAFI\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;Encrypt=False;";
             using (var con = new SqlConnection(connStr))
             {
                 con.Open();

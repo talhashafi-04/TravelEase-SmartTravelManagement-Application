@@ -20,7 +20,7 @@ namespace DatabaseProject
         private Chart chartRevenue;
         private Button btnUsersReport, btnTripsReport, btnBookingsReport, btnRevenueReport;
         SqlConnection con = new SqlConnection(
-    "Data Source=Shehryar\\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;TrustServerCertificate=True");
+    @"Data Source=TALHA-SHAFI\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;Encrypt=False;Trusted_Connection=True");
 
 
         public PlatformAnalyticsForm()

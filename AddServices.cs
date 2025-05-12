@@ -1,4 +1,5 @@
-﻿using System;
+﻿
+using System;
 using System.Data;
 using System.Linq;
 using System.Windows.Forms;
@@ -8,8 +9,7 @@ namespace Service_Provider_Section
 {
     public partial class AddServices : Form
     {
-        private string connectionString = @"Data Source=TALHA-SHAFI\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;";
-
+        private readonly string connectionString = @"Data Source=TALHA-SHAFI\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;Encrypt=False;";
         private readonly string providerId;
 
         private ComboBox cmbServiceType;
@@ -84,6 +84,10 @@ namespace Service_Provider_Section
         private void CmbServiceType_SelectedIndexChanged(object sender, EventArgs e)
         {
             panelFields.Controls.Clear();
+
+            if (cmbServiceType.SelectedItem == null)
+                return;
+
             string selectedType = cmbServiceType.SelectedItem.ToString();
 
             switch (selectedType)
@@ -256,8 +260,8 @@ namespace Service_Provider_Section
                 {
                     // 1. Insert into SERVICES and get ServiceID
                     string insertServiceQuery = @"
-                        INSERT INTO SERVICES (ServiceType) 
-                        OUTPUT INSERTED.ServiceID 
+                        INSERT INTO SERVICES (ServiceType)
+                        OUTPUT INSERTED.ServiceID
                         VALUES (@ServiceType)";
 
                     SqlCommand cmd = new SqlCommand(insertServiceQuery, conn, transaction);
@@ -298,10 +302,10 @@ namespace Service_Provider_Section
         {
             string query = @"
                 INSERT INTO HOTEL (
-                    HotelID, Name, Capacity, Amenities, 
+                    HotelID, Name, Capacity, Amenities,
                     Description, StartDate, ProviderID
                 ) VALUES (
-                    @ID, @Name, @Capacity, @Amenities, 
+                    @ID, @Name, @Capacity, @Amenities,
                     @Description, @StartDate, @ProviderID
                 )";
 
@@ -320,10 +324,10 @@ namespace Service_Provider_Section
         {
             string query = @"
                 INSERT INTO GUIDE (
-                    GuideID, Specializations, Languages, 
+                    GuideID, Specializations, Languages,
                     Certifications, StartDate, ProviderID
                 ) VALUES (
-                    @ID, @Specializations, @Languages, 
+                    @ID, @Specializations, @Languages,
                     @Certifications, @StartDate, @ProviderID
                 )";
 
@@ -341,10 +345,10 @@ namespace Service_Provider_Section
         {
             string query = @"
                 INSERT INTO TRANSPORT_PROVIDER (
-                    TransportID, Specializations, Vehicles, 
+                    TransportID, Specializations, Vehicles,
                     LicenseDetails, ServiceAreas, ProviderID
                 ) VALUES (
-                    @ID, @Specializations, @Vehicles, 
+                    @ID, @Specializations, @Vehicles,
                     @LicenseDetails, @ServiceAreas, @ProviderID
                 )";
 

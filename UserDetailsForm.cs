@@ -20,7 +20,7 @@ namespace DatabaseProject
         private DataGridView dgvActions;
         private Button btnSave, btnClose;
         SqlConnection con = new SqlConnection(
-            "Data Source=Shehryar\\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;TrustServerCertificate=True");
+            @"Data Source=TALHA-SHAFI\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;Encrypt=False;Trusted_Connection=True");
 
         public UserDetailsForm(string userId)
         {

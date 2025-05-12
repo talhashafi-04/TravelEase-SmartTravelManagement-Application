@@ -16,7 +16,7 @@ namespace DatabaseProject
         private DataGridView dgvReviews;
         private Button btnApprove, btnReject, btnViewDetails;
         SqlConnection con = new SqlConnection(
-            "Data Source=Shehryar\\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;TrustServerCertificate=True");
+            @"Data Source=TALHA-SHAFI\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;Encrypt=False;Trusted_Connection=True");
 
         public ReviewModerationForm()
         {

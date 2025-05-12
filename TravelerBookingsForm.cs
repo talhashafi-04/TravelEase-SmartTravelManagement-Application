@@ -8,7 +8,7 @@ namespace TravelEase
 {
     public partial class TravelerBookingsForm : Form
     {
-        private string connectionString = @"Data Source=TALHA-SHAFI\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;";
+        private string connectionString = @"Data Source=TALHA-SHAFI\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;Encrypt=False;";
         private string travelerId;
 
         public TravelerBookingsForm(string travelerId)

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using DatabaseProject;
 using TravelEase;
 using TripBookingReportApp;
 
@@ -23,7 +24,12 @@ namespace TravelApplication
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new LoginForm());
+            
+            // Uncomment the line below to test the TravelerDemographicsForm
+            // Application.Run(new TravelEase.TravelerDemographicsForm());
+            
+            // Default application run
+            Application.Run(new Form1("TO017"));
         }
     }
 }

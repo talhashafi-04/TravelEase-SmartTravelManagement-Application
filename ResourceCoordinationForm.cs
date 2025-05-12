@@ -23,7 +23,7 @@ namespace DatabaseProject
         private DateTimePicker dtpScheduleDate;
         private Button btnAssign, btnUnassign, btnSave, btnCancel;
         SqlConnection con = new SqlConnection(
-    "Data Source=Shehryar\\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;TrustServerCertificate=True");
+    @"Data Source=TALHA-SHAFI\SQLEXPRESS;Initial Catalog=TravelEase;Integrated Security=True;Encrypt=False;Trusted_Connection=True");
 
 
         public ResourceCoordinationForm(int tripId)
