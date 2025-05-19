@@ -1,9 +1,10 @@
 # TravelEase
 
-## **Watch the Application Demo  **
+<h3>📽️ Watch the Application Demo</h3>
 
-[![Application Demo](https://github.com/user-attachments/assets/b6abbf35-b265-4c1c-b142-c3eaa9d157a3)]([https://www.youtube.com/watch?v=y0q5dQo1IGY](https://www.linkedin.com/posts/muhammad-talha-shafi_databasedevelopment-sqlserver-erd-activity-7328135671355752449-3ePX?utm_source=share&utm_medium=member_desktop&rcm=ACoAAEHbqwQB0h7dPkEHy48WL9htzh76BGLd78A))
-
+<a href="https://www.linkedin.com/posts/muhammad-talha-shafi_databasedevelopment-sqlserver-erd-activity-7328135671355752449-3ePX?utm_source=share&utm_medium=member_desktop&rcm=ACoAAEHbqwQB0h7dPkEHy48WL9htzh76BGLd78A">
+  <img src="assets/demo_thumbnail.png" alt="App Demo" width="600"/>
+</a>
 
 
 ## Comprehensive Travel Management Platform
