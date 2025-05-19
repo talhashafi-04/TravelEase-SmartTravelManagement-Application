@@ -1,6 +1,6 @@
 # TravelEase
 
-[![Watch the demo](https://github.com/user-attachments/assets/dcbcd43a-f0a2-417a-b21f-0cbda04f6c4c)](https://youtu.be/56RyzNnrsAo)
+[![Watch the demo](https://youtu.be/56RyzNnrsAo)]
 
 
 ## Comprehensive Travel Management Platform
