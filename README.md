@@ -1,6 +1,6 @@
 # TravelEase
 
-![image](https://github.com/user-attachments/assets/35e8ec9a-871c-46dc-ac44-c1625f09a7c9)
+[![Watch the demo](https://github.com/user-attachments/assets/dcbcd43a-f0a2-417a-b21f-0cbda04f6c4c)](https://youtu.be/56RyzNnrsAo)
 
 
 ## Comprehensive Travel Management Platform
